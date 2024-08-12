@@ -1,0 +1,17 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
+  "id": "ModelMenu",
+  "name": "ModelMenu",
+  "author": "qqrz997",
+  "version": "0.1.0",
+  "description": "Download models from modelsaber from within the game",
+  "gameVersion": "1.37.1",
+  "dependsOn": {
+    "BSIPA": "^4.3.4",
+    "SiraUtil": "^3.1.11",
+    "BeatSaberMarkupLanguage": "^1.11.3"
+  },
+  "conflictsWith": {
+    "ModelDownloader": "^0.0.0"
+  }
+}
