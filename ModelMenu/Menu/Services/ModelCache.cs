@@ -27,7 +27,8 @@ internal class ModelCache
         var ofType = CachedModels.Where(info => info.AssetType == searchOptions.AssetType);
 
         // find assets that match the search
-        var filtered = ofType.Where(info => info.Name.Contains(searchOptions.SearchPhrase));
+        var searchPhrase = searchOptions.SearchPhrase.ToLower();
+        var filtered = ofType.Where(info => $"{info.Name}{info.Author}".ToLower().Contains(searchPhrase));
 
         if (searchOptions.HideInstalled)
         {
