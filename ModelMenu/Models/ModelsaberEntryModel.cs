@@ -4,19 +4,19 @@ namespace ModelMenu.Menu.UI;
 
 internal class ModelsaberEntryModel
 {
-    public string[] Tags { get; private set; }
+    public string[] Tags { get; }
 
-    public string AssetType { get; private set; }
+    public string AssetType { get; }
 
-    public string Name { get; private set; }
+    public string Name { get; }
 
-    public string Author { get; private set; }
+    public string Author { get; }
 
-    public string Thumbnail { get; private set; }
+    public string Thumbnail { get; }
 
-    public string Hash { get; private set; }
+    public string Hash { get; }
 
-    public string Download { get; private set; }
+    public string Download { get; }
 
     [JsonConstructor]
     private ModelsaberEntryModel(string[] tags, string type, string name, string author, string thumbnail, string hash, string download)

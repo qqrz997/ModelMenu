@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace ModelMenu.Models;
 
-internal class ModelsaberModelInfo(string assetType, string name, string author, string[] tags, string thumbnailUriString, string downloadUriString, string assetHash) : IModelInfo
+internal class Model(string assetType, string name, string author, string[] tags, string thumbnailUriString, string downloadUriString, string assetHash) : IModel
 {
     private readonly string thumbnailUriString = thumbnailUriString;
     private readonly string downloadUriString = downloadUriString;
@@ -16,21 +16,13 @@ internal class ModelsaberModelInfo(string assetType, string name, string author,
         "saber" or _ => AssetType.Saber,
     };
 
-    public string Name { get; } = name;
+    public ModelName Name { get; } = new(name);
 
-    public string Author { get; } = author;
+    public ModelAuthor Author { get; } = new(author);
 
-    public string Description => tags switch
-    {
-        null or [] => string.Empty,
-        [var one] => one,
-        [var one, var other] => $"{one} and {other}",
-        [.. var tags, var last] => $"{string.Join(", ", tags)}, and {last}"
-    };
+    public ModelDescription Description { get; } = new(tags);
 
-    public string AssetHash { get; } = assetHash;
-
-    public bool AdultOnly => tags.Any(t => t.ToLower() == "nsfw");
+    public string Hash { get; } = assetHash;
 
     public Uri ThumbnailUri =>
         Uri.TryCreate(thumbnailUriString, UriKind.Absolute, out Uri thumbnailUri) ? thumbnailUri

@@ -1,6 +1,6 @@
 ﻿using HMUI;
+using ModelMenu.Menu.Services;
 using ModelMenu.Menu.UI.ViewControllers;
-using ModelMenu.Utilities;
 using SiraUtil.Logging;
 using System;
 using System.Collections;
@@ -11,43 +11,52 @@ namespace ModelMenu.Menu.UI;
 
 internal class ModelMenuFlowCoordinator : FlowCoordinator
 {
-    [Inject] private readonly SiraLog log;
     [Inject] private readonly MainView mainView;
-    [Inject] private readonly MainFlowCoordinator mainFlowCoordinator;
+    [Inject] private readonly ModelDataLoadingScreenView modelDataLoadingScreenView;
     [Inject] private readonly ModelAssetDownloader modelDownloader;
-
+    
     private const string menuTitle = "Model Menu";
+    private ViewController currentView;
+
+    public Action DidFinish;
+
+    public void TransitionToMainView()
+    {
+        currentView = mainView;
+        if (!isActivated) return;
+        showBackButton = true;
+        PresentViewController(mainView);
+    }
+
+    public void Exit()
+    {
+        DismissChildViewControllersRecursively(true);
+        DidFinish?.Invoke();
+    }
 
     private void Awake()
     {
         SetTitle(menuTitle);
-        showBackButton = true;
+        currentView = modelDataLoadingScreenView;
     }
 
     protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
     {
-        modelDownloader.AssetsDownloadingChanged += ModelsDownloadingChanged;
-        try
+        modelDownloader.AssetsDownloadingChanged += AssetsDownloadingChanged;
+
+        if (addedToHierarchy)
         {
-            ProvideInitialViewControllers(mainView);
-        }
-        catch (Exception ex)
-        {
-            log.Error(ex);
-            mainFlowCoordinator.DismissFlowCoordinator(this);
+            ProvideInitialViewControllers(currentView);
+            showBackButton = currentView == mainView;
         }
     }
 
-    protected override void BackButtonWasPressed(ViewController topViewController)
-    {
-        modelDownloader.AssetsDownloadingChanged -= ModelsDownloadingChanged;
-        SetTitle(menuTitle);
-        mainFlowCoordinator.DismissFlowCoordinator(this);
-    }
+    protected override void BackButtonWasPressed(ViewController topViewController) => Exit();
 
-    private int prevModelsDownloading = 0;
+    protected override void DidDeactivate(bool removedFromHierarchy, bool screenSystemDisabling) =>
+        modelDownloader.AssetsDownloadingChanged -= AssetsDownloadingChanged;
 
-    private void ModelsDownloadingChanged(int modelsDownloading)
+    private void AssetsDownloadingChanged(int modelsDownloading)
     {
         if (modelsDownloading != 0)
         {
@@ -55,13 +64,11 @@ internal class ModelMenuFlowCoordinator : FlowCoordinator
         }
         else
         {
-            StartCoroutine(DownloadingFinishedCoroutine());
+            StartCoroutine(FormatTitleOnDownloadingFinish());
         }
-
-        prevModelsDownloading = modelsDownloading;
     }
 
-    private IEnumerator DownloadingFinishedCoroutine()
+    private IEnumerator FormatTitleOnDownloadingFinish()
     {
         SetTitle("<color=#CFC>Downloads complete</color>");
         yield return new WaitForSeconds(1);

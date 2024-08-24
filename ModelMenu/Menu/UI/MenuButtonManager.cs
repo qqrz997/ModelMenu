@@ -9,8 +9,11 @@ internal class MenuButtonManager : IInitializable, IDisposable
     private readonly MainFlowCoordinator mainFlowCoordinator;
     private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator;
 
-    private MenuButtonManager(MainFlowCoordinator mainFlowCoordinator, ModelMenuFlowCoordinator modelMenuFlowCoordinator) =>
-        (this.mainFlowCoordinator, this.modelMenuFlowCoordinator) = (mainFlowCoordinator, modelMenuFlowCoordinator);
+    private MenuButtonManager(MainFlowCoordinator mainFlowCoordinator, ModelMenuFlowCoordinator modelMenuFlowCoordinator)
+    {
+        this.mainFlowCoordinator = mainFlowCoordinator;
+        this.modelMenuFlowCoordinator = modelMenuFlowCoordinator;
+    }
 
     private MenuButton button;
 
@@ -18,11 +21,19 @@ internal class MenuButtonManager : IInitializable, IDisposable
     {
         button = new("More Models", "View and download more custom models", PresentFlowCoordinator);
         MenuButtons.instance.RegisterButton(button);
+
+        modelMenuFlowCoordinator.DidFinish += ModelMenuDidFinish;
     }
+
+    private void ModelMenuDidFinish() => 
+        mainFlowCoordinator.DismissFlowCoordinator(modelMenuFlowCoordinator);
 
     private void PresentFlowCoordinator() =>
         mainFlowCoordinator.PresentFlowCoordinator(modelMenuFlowCoordinator);
 
-    public void Dispose() =>
+    public void Dispose()
+    {
         MenuButtons.instance.UnregisterButton(button);
+        modelMenuFlowCoordinator.DidFinish -= ModelMenuDidFinish;
+    }
 }

@@ -1,6 +1,6 @@
-﻿using ModelMenu.Menu.UI;
+﻿using ModelMenu.Menu.Services;
+using ModelMenu.Menu.UI;
 using ModelMenu.Menu.UI.ViewControllers;
-using ModelMenu.Utilities;
 using Zenject;
 
 namespace ModelMenu.Installers;
@@ -11,10 +11,14 @@ internal class MenuInstaller : Installer
     {
         Container.BindInterfacesTo<MenuButtonManager>().AsSingle();
         Container.Bind<ModelMenuFlowCoordinator>().FromNewComponentOnNewGameObject().AsSingle();
+        Container.Bind<ModelDataLoadingScreenView>().FromNewComponentAsViewController().AsSingle();
         Container.Bind<MainView>().FromNewComponentAsViewController().AsSingle();
-        Container.Bind<ModelInfoTileManager>().AsSingle();
+        Container.Bind<ModelTileManager>().AsSingle();
 
-        Container.Bind<ModelsaberApi>().AsSingle();
+        Container.BindInterfacesAndSelfTo<ModelsaberApi>().AsSingle();
+        Container.Bind<ModelCache>().AsSingle();
+        Container.Bind<InstalledAssetCache>().AsSingle();
+        Container.Bind<ModelThumbnailCache>().AsSingle();
         Container.Bind<ModelAssetDownloader>().AsSingle();
     }
 }

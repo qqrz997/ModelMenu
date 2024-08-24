@@ -1,20 +1,27 @@
 ﻿using ModelMenu.Utilities;
+using ModelMenu.Utilities.Extensions;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 using UnityEngine;
 
 namespace ModelMenu.Menu.UI;
 
-internal class ModelThumbnail(byte[] data)
+internal abstract class Thumbnail;
+
+internal sealed class NoThumbnail : Thumbnail;
+
+internal sealed class ModelThumbnail(byte[] data) : Thumbnail
 {
     private readonly byte[] data = data;
+    private readonly Dictionary<int, Sprite> dimensionSpritePairs = [];
 
-    private Sprite sprite128 = null;
-    private Sprite spriteFull = null;
+    public Sprite GetSprite(int dimension = 0) =>
+        dimensionSpritePairs.ContainsKey(dimension) ? dimensionSpritePairs[dimension]
+        : dimensionSpritePairs[dimension] = CreateThumbnail(dimension);
 
-    public Sprite Sprite128 => sprite128 ??= CreateThumbnail(128);
-
-    public Sprite SpriteFull => spriteFull ??= CreateThumbnail();
-
-    private Sprite CreateThumbnail(int dimension = 0) =>
-        new Texture2D(2, 2).CreateSprite(dimension > 0 ? ImageManipulation.DownscaleImage(data, dimension, ImageFormat.Jpeg) : data);
+    private Sprite CreateThumbnail(int dimension)
+    {
+        var imageData = dimension == 0 ? data : ImageManipulation.DownscaleImage(data, dimension, ImageFormat.Jpeg);
+        return new Texture2D(2, 2).CreateSprite(imageData);
+    }
 }

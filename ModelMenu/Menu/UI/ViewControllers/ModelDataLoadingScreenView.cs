@@ -1,0 +1,47 @@
+﻿using BeatSaberMarkupLanguage.Attributes;
+using BeatSaberMarkupLanguage.ViewControllers;
+using ModelMenu.Menu.Services;
+using ModelMenu.Models;
+using SiraUtil.Logging;
+using System;
+using System.Threading.Tasks;
+using TMPro;
+using Zenject;
+
+namespace ModelMenu.Menu.UI.ViewControllers;
+
+[ViewDefinition("ModelMenu.Menu.UI.BSML.model-data-loading-screen.bsml")]
+[HotReload(RelativePathToLayout = "../BSML/model-data-loading-screen.bsml")]
+internal class ModelDataLoadingScreenView : BSMLAutomaticViewController
+{
+    [Inject] private readonly SiraLog log;
+    [Inject] private readonly ModelsaberApi modelApi;
+    [Inject] private readonly InstalledAssetCache installedAssetCache;
+    [Inject] private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator;
+
+    [UIComponent("status-text")]
+    private readonly TextMeshProUGUI statusText;
+    private readonly string cachingStatusTextMessage = "Caching installed models";
+    private readonly string apiStatusTextMessage = "Fetching external model data";
+
+    private void FormatStatus(string message, ProgressPercent progress) =>
+        statusText.text = $"{message} - {progress}";
+
+    [UIAction("#post-parse")]
+    private async void PostParse()
+    {
+        var cacheInit = installedAssetCache.ManualInit(new Progress<ProgressPercent>((p) => FormatStatus(cachingStatusTextMessage, p)));
+        var apiInit = modelApi.GetAllModelInfoAsync(new Progress<bool>(/* do... something. idk. */));
+        
+        await cacheInit;
+        await apiInit;
+
+        modelMenuFlowCoordinator.TransitionToMainView();
+    }
+
+    [UIAction("cancel")]
+    private void Cancel()
+    {
+        modelMenuFlowCoordinator.Exit();
+    }
+}

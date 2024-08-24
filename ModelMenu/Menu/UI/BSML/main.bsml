@@ -3,13 +3,13 @@
   <horizontal horizontal-fit='PreferredSize' spacing='2' preferred-height='75.5'>
     <!--Left-hand panels-->
     <vertical child-expand-height='false' pref-width='40' vertical-fit='Unconstrained' spacing='2'>
-      <vertical child-expand-height='false' vertical-fit='Unconstrained' bg='round-rect-panel' horizontal-fit='Unconstrained' pad='2'>
+      <vertical child-expand-height='false' vertical-fit='Unconstrained' horizontal-fit='Unconstrained' bg='round-rect-panel' bg-alpha='0.5' pad='2'>
         <button text='Search' on-click='open-search-modal'/>
         <dropdown-list-setting text='' value='model-type-filter' choices='model-type-choices' apply-on-change='true'/>
         <dropdown-list-setting text='' hover-hint='Sort by' value='sort-type-filter' choices='sort-type-choices' apply-on-change='true'/>
       </vertical>
 
-      <vertical child-expand-height='false' preferred-height='10' bg='round-rect-panel' horizontal-fit='Unconstrained' pad='1'>
+      <vertical child-expand-height='false' preferred-height='10' bg='round-rect-panel' bg-alpha='0.5' horizontal-fit='Unconstrained' pad='1'>
         <horizontal vertical-fit='Unconstrained' spacing='5'>
           <button on-click='page-down' text='prev'/>
           <horizontal ignore-layout='true'>
@@ -19,7 +19,7 @@
         </horizontal>
       </vertical>
       
-      <vertical child-expand-height='false' preferred-height='40' horizontal-fit='Unconstrained' background='round-rect-panel' pad='1'>
+      <vertical child-expand-height='false' preferred-height='40' horizontal-fit='Unconstrained' bg='round-rect-panel' bg-alpha='0.5' pad='1'>
         <stack>
           <clickable-image id='big-preview' on-click='show-model-info'/>
           <horizontal child-control-height='false' child-control-width='false' child-expand-height='false' child-expand-width='false' child-align='UpperRight'
@@ -30,7 +30,7 @@
       </vertical>
     </vertical>
     <!--Models grid-->
-    <horizontal pref-width='112.5' vertical-fit='Unconstrained' background='round-rect-panel' pad='1'>
+    <horizontal pref-width='112.5' vertical-fit='Unconstrained' bg='round-rect-panel' bg-alpha='0.5' pad='1'>
       <grid id='model-grid' cell-size='18' spacing='0.5' horizontal-fit='Unconstrained' >
         <horizontal id='model-tile' background='round-rect-panel' background-color='#FFFA' horizontal-fit='Unconstrained' vertical-fit='Unconstrained'>
           <stack>

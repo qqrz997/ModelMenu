@@ -2,10 +2,11 @@
 using BeatSaberMarkupLanguage.Components;
 using BeatSaberMarkupLanguage.ViewControllers;
 using HMUI;
+using IPA.Utilities;
 using IPA.Utilities.Async;
+using ModelMenu.App;
+using ModelMenu.Menu.Services;
 using ModelMenu.Models;
-using ModelMenu.Utilities;
-using SiraUtil.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,15 +18,17 @@ using Zenject;
 
 namespace ModelMenu.Menu.UI.ViewControllers;
 
-
 [ViewDefinition("ModelMenu.Menu.UI.BSML.main.bsml")]
 [HotReload(RelativePathToLayout = "../BSML/main.bsml")]
 internal class MainView : BSMLAutomaticViewController
 {
-    [Inject] private readonly SiraLog log;
-    [Inject] private readonly ModelInfoTileManager modelInfoTileManager;
-    [Inject] private readonly ModelAssetDownloader modelDownloader;
+    [Inject] private readonly PluginConfig config;
     [Inject] private readonly EmbeddedResources resources;
+    [Inject] private readonly ModelTileManager modelTileManager;
+    [Inject] private readonly ModelThumbnailCache modelThumbnailCache;
+    [Inject] private readonly ModelAssetDownloader modelDownloader;
+    [Inject] private readonly InstalledAssetCache installedAssetCache;
+    [Inject] private readonly PlayerDataModel playerDataModel;
 
     private AssetType modelTypeFilter = AssetType.Saber;
     private SortBy sortTypeFilter = SortBy.Date;
@@ -89,11 +92,11 @@ internal class MainView : BSMLAutomaticViewController
 
     [UIObject("model-tile")]
     private GameObject modelTileOriginal;
-    private readonly ModelInfoTile[] gridInfoTiles = new ModelInfoTile[24];
+    private readonly ModelTile[] gridModelTiles = new ModelTile[24];
 
     private const int tilesPerPage = 24;
 
-    private IModelInfo selectedModel = null;
+    private IModel selectedModel = null;
     private int currentPage = 0;
 
     [UIAction("#post-parse")]
@@ -112,8 +115,8 @@ internal class MainView : BSMLAutomaticViewController
         for (int i = 0; i < tilesPerPage; i++)
         {
             var currentTile = i == 0 ? modelTileOriginal : Instantiate(modelTileOriginal, modelGrid.transform, false);
-            gridInfoTiles[i] = new(currentTile, i);
-            gridInfoTiles[i].TileClicked += TileClicked;
+            gridModelTiles[i] = new(currentTile, i);
+            gridModelTiles[i].TileClicked += TileClicked;
         }
 
         await ShowPage(currentPage);
@@ -121,9 +124,11 @@ internal class MainView : BSMLAutomaticViewController
 
     private void TileClicked(int gridIndex)
     {
-        selectedModel = gridInfoTiles[gridIndex].ModelInfo;
-        previewImage.sprite = modelInfoTileManager.GetThumbnailForHash(selectedModel.AssetHash)?.SpriteFull;
-        downloadButton.gameObject.SetActive(!selectedModel.IsAssetInstalled() && !modelDownloader.IsModelDownloading(selectedModel));
+        selectedModel = gridModelTiles[gridIndex].Model;
+        previewImage.sprite = modelThumbnailCache.GetThumbnail(selectedModel.Hash) is ModelThumbnail modelThumbnail 
+            ? modelThumbnail.GetSprite() : null;
+        downloadButton.gameObject.SetActive(!installedAssetCache.IsAssetInstalled(selectedModel)
+            && !modelDownloader.IsModelDownloading(selectedModel));
     }
 
     [UIAction("show-model-info")]
@@ -132,39 +137,36 @@ internal class MainView : BSMLAutomaticViewController
         if (selectedModel != null)
         {
             infoModalTitle.text = $"{selectedModel.Name} by {selectedModel.Author}";
-            infoModalDescription.text = string.IsNullOrWhiteSpace(selectedModel.Description) ? "No description" : selectedModel.Description;
+            infoModalDescription.text = !string.IsNullOrWhiteSpace(selectedModel.Description.FullName) 
+                ? selectedModel.Description.FullName : "No description";
             modelInfoModal.Show(true);
         }
     }
 
     [UIAction("hide-model-info")]
-    private void HideModelInfo() => 
-        modelInfoModal.Hide(true);
+    private void HideModelInfo() => modelInfoModal.Hide(true);
 
     [UIAction("page-up")]
     private async void PageUp()
     {
-        if (currentPage < int.MaxValue && !gridInfoTiles.Any(t => t.ModelInfo is NoModelInfo))
-        {
-            currentPage++;
-            await ShowPage(currentPage);
-        }
+        // todo - need a definitive way to know when it is on the last page
+        if (currentPage >= int.MaxValue || gridModelTiles.Any(t => t.Model is NoModel)) return;
+        currentPage++;
+        await ShowPage(currentPage);
     }
 
     [UIAction("page-down")]
     private async void PageDown()
     {
-        if (currentPage > 0)
-        {
-            currentPage--;
-            await ShowPage(currentPage);
-        }
+        if (currentPage <= 0) return;
+        currentPage--;
+        await ShowPage(currentPage);
     }
 
     [UIAction("download")]
     private async void Download()
     {
-        if (!selectedModel.IsAssetInstalled())
+        if (!installedAssetCache.IsAssetInstalled(selectedModel))
         {
             downloadButton.SetActive(false);
             await modelDownloader.InstallAssetAsync(selectedModel, OnDownloadCompleted);
@@ -181,12 +183,13 @@ internal class MainView : BSMLAutomaticViewController
         await ShowPage(currentPage);
     }
 
-    private void OnDownloadCompleted(IModelInfo downloadedModel, bool success)
+    private void OnDownloadCompleted(IModel downloadedModel, bool success)
     {
-        if (success && gridInfoTiles.Select(t => t.ModelInfo).Contains(downloadedModel))
+        var gridModels = gridModelTiles.Select(t => t.Model);
+        if (success && gridModels.Contains(downloadedModel))
         {
-            gridInfoTiles.First(t => t.ModelInfo == downloadedModel).IsInstalled = true;
-            if (gridInfoTiles.Select(t => t.ModelInfo).Contains(selectedModel) && selectedModel == downloadedModel)
+            gridModelTiles.First(t => t.Model == downloadedModel).IsInstalled = true;
+            if (gridModels.Contains(selectedModel) && selectedModel == downloadedModel)
             {
                 downloadButton.SetActive(false);
             }
@@ -196,9 +199,17 @@ internal class MainView : BSMLAutomaticViewController
 
     private async Task ShowPage(int pageNumber)
     {
-        var searchOptions = new ModelSearchOptions(pageNumber, modelTypeFilter, sortTypeFilter, searchFilter);
-        pageIndexText.text = (pageNumber + 1).ToString();
-        await modelInfoTileManager.UpdatePageAsync(gridInfoTiles, searchOptions);
+        var showAdultOnly = playerDataModel.playerData.desiredSensitivityFlag == PlayerSensitivityFlag.Explicit;
+        var searchOptions = new ModelSearchOptions(
+            pageNumber,
+            searchFilter,
+            modelTypeFilter, 
+            new SortOptions(sortTypeFilter),
+            new AgeOptions(showAdultOnly ? AgeRating.AdultOnly : AgeRating.AllAges),
+            HideInstalled: false); // todo - figure out where this setting should live
+                                   // could either be config or another view controller 
+        await modelTileManager.UpdatePageAsync(gridModelTiles, searchOptions, 
+            (page) => pageIndexText.text = $"{pageNumber + 1} / {page.TotalPages}");
     }
 
     protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)

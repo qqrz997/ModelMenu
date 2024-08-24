@@ -5,9 +5,10 @@ using ModelMenu.Installers;
 using SiraUtil.Zenject;
 using Hive.Versioning;
 using System.Reflection;
-using BeatSaberMarkupLanguage;
 using ModelMenu.Menu.CustomTags;
-using ModelMenu.Utilities;
+using IPA.Config;
+using IPA.Config.Stores;
+using ModelMenu.App;
 
 namespace ModelMenu;
 
@@ -21,15 +22,17 @@ internal class Plugin
     public static Assembly ExecutingAssembly => Assembly.GetExecutingAssembly();
     
     [Init]
-    public void Init(Logger logger, Zenjector zenjector, PluginMetadata metadata)
+    public void Init(Logger logger, Config config, Zenjector zenjector, PluginMetadata metadata)
     {
         Version = metadata.HVersion;
         Name = metadata.Name;
 
-        BSMLParser.instance.RegisterTag(new DownloadButtonTag());
+        BeatSaberMarkupLanguage.BSMLParser.instance.RegisterTag(new DownloadButtonTag());
+
+        var pluginConfig = config.Generated<PluginConfig>();
 
         zenjector.UseLogger(logger);
-        zenjector.Install<AppInstaller>(Location.App);
+        zenjector.Install<AppInstaller>(Location.App, pluginConfig);
         zenjector.Install<MenuInstaller>(Location.Menu);
     }
 }

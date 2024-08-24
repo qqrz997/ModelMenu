@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using ModelMenu.Utilities.Extensions;
 
 namespace ModelMenu.Utilities;
 

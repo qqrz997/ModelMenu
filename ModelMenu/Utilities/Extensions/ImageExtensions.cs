@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace ModelMenu.Utilities;
+namespace ModelMenu.Utilities.Extensions;
 
 internal static class ImageExtensions
 {

@@ -1,4 +1,6 @@
 ﻿using ModelMenu.Models;
+using ModelMenu.Utilities;
+using ModelMenu.Utilities.Extensions;
 using SiraUtil.Logging;
 using System;
 using System.Collections.Generic;
@@ -6,54 +8,57 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace ModelMenu.Utilities;
+namespace ModelMenu.Menu.Services;
 
 internal class ModelAssetDownloader
 {
     private readonly SiraLog log;
+    private readonly InstalledAssetCache installedAssetCache;
     private readonly HttpClient httpClient = new();
 
-    private ModelAssetDownloader(SiraLog log)
+    private ModelAssetDownloader(SiraLog log, InstalledAssetCache installedAssetCache)
     {
         this.log = log;
+        this.installedAssetCache = installedAssetCache;
         httpClient.DefaultRequestHeaders.Add("User-Agent", $"{Plugin.Name}/{Plugin.Version}");
     }
 
     public Action<int> AssetsDownloadingChanged;
 
-    private readonly IList<IModelInfo> downloadingModels = [];
+    private readonly IList<IModel> downloadingModels = [];
 
-    public async Task InstallAssetAsync(IModelInfo modelInfo, Action<IModelInfo, bool> callback)
+    public async Task InstallAssetAsync(IModel model, Action<IModel, bool> callback)
     {
-        if (IsModelDownloading(modelInfo))
+        if (IsModelDownloading(model))
         {
-            callback?.Invoke(modelInfo, false);
+            callback?.Invoke(model, false);
             return;
         }
 
-        downloadingModels.Add(modelInfo);
+        downloadingModels.Add(model);
         AssetsDownloadingChanged?.Invoke(downloadingModels.Count);
 
-        var fullPath = modelInfo.GetInstallPath();
+        var fullPath = PathUtils.FormatExistingFilePath(model.GetInstallPath());
 
         try
         {
-            var uriString = modelInfo.ModelAssetUri.ToString();
+            /*var uriString = model.ModelAssetUri.ToString();
 
             int i = uriString.LastIndexOf(Path.AltDirectorySeparatorChar);
             var uriBase = uriString.Substring(0, i + 1);
             var uriEnd = uriString.Substring(i + 1);
             var escapedEnd = Uri.EscapeDataString(uriEnd);
-            var escapedUri = new Uri(uriBase + escapedEnd);
+            var escapedUri = new Uri(uriBase + escapedEnd);*/
 
-            using var response = await httpClient.GetAsync(escapedUri);
+            using var response = await httpClient.GetAsync(model.ModelAssetUri);
             response.EnsureSuccessStatusCode();
 
             using var responseStream = await response.Content.ReadAsStreamAsync();
             using var fileStream = new FileStream(fullPath, FileMode.CreateNew);
             await responseStream.CopyToAsync(fileStream);
 
-            callback?.Invoke(modelInfo, true);
+            installedAssetCache.AddHash(model.Hash);
+            callback(model, true);
         }
         catch (Exception ex)
         {
@@ -64,13 +69,13 @@ internal class ModelAssetDownloader
                 File.Delete(fullPath);
             }
 
-            callback?.Invoke(modelInfo, false);
+            callback(model, false);
         }
 
-        downloadingModels.Remove(modelInfo);
+        downloadingModels.Remove(model);
         AssetsDownloadingChanged?.Invoke(downloadingModels.Count);
     }
 
-    public bool IsModelDownloading(IModelInfo modelInfo) =>
-        downloadingModels.Contains(modelInfo);
+    public bool IsModelDownloading(IModel model) =>
+        downloadingModels.Contains(model);
 }

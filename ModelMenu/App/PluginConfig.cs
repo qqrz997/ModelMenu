@@ -2,7 +2,7 @@
 using IPA.Config.Stores;
 
 [assembly: InternalsVisibleTo(GeneratedStore.AssemblyVisibilityTarget)]
-namespace ModelMenu.Configuration;
+namespace ModelMenu.App;
 
 internal class PluginConfig
 {

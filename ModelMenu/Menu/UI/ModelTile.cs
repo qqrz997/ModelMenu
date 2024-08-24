@@ -2,9 +2,7 @@
 using HMUI;
 using ModelMenu.Models;
 using ModelMenu.Utilities;
-using SiraUtil.Logging;
 using System;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
@@ -13,7 +11,7 @@ using UnityEngine.EventSystems;
 
 namespace ModelMenu.Menu.UI;
 
-internal class ModelInfoTile
+internal class ModelTile
 {
     private readonly GameObject tileHost;
     private readonly ClickableImage clickableImage;
@@ -21,12 +19,11 @@ internal class ModelInfoTile
     private readonly ImageView loadingIndicator;
     private readonly ImageView checkmarkIcon;
     private readonly int gridIndex;
-    private readonly Regex richTextRegex = new(@"<[^>]*>");
 
-    private IModelInfo modelInfo = new NoModelInfo();
+    private IModel model = new NoModel();
     private bool isInstalled;
 
-    public ModelInfoTile(GameObject tileHost, int gridIndex)
+    public ModelTile(GameObject tileHost, int gridIndex)
     {
         this.tileHost = tileHost;
         this.gridIndex = gridIndex;
@@ -45,13 +42,15 @@ internal class ModelInfoTile
 
     public Action<int> TileClicked;
 
-    public IModelInfo ModelInfo
+    public IModel Model
     {
-        get => modelInfo;
+        get => model;
         set
         {
-            modelInfo = value;
-            text.text = richTextRegex.IsMatch(value.Name) ? richTextRegex.Replace(value.Name, string.Empty) : value.Name;
+            model = value;
+            text.text = RegularExpressions.RichText.IsMatch(value.Name.FullName) 
+                ? RegularExpressions.RichText.Replace(value.Name.FullName, string.Empty) 
+                : value.Name.FullName;
         }
     }
 
@@ -75,17 +74,11 @@ internal class ModelInfoTile
         }
     }
 
-    public void SetLoading(bool value)
-    {
-        if (loadingIndicator.isActiveAndEnabled) loadingIndicator.gameObject.SetActive(false);
+    public void SetLoading(bool value) => 
         loadingIndicator.gameObject.SetActive(value);
-    }
 
     public void SetActive(bool active) =>
         tileHost.SetActive(active);
-
-    public override string ToString() =>
-        ModelInfo is null ? "No data" : $"{ModelInfo.Name} by {ModelInfo.Author}";
 
     private void TileClickEvent(PointerEventData _) =>
         TileClicked?.Invoke(gridIndex);

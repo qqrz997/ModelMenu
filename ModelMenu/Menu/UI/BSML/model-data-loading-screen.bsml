@@ -1,0 +1,11 @@
+<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://monkeymanboy.github.io/BSML-Docs/BSMLSchema.xsd'>
+
+  <vertical child-expand-height='false' child-align='MiddleCenter' spacing='4'>
+    <text id='status-text' text='' align='Center'/>
+    <loading-indicator preserve-aspect='true' preferred-height='10'/>
+    <horizontal child-expand-height='false' child-control-height='false' child-align='MiddleCenter'>
+      <button text='Cancel' on-click='cancel'/>
+    </horizontal>
+  </vertical>
+    
+</bg>
