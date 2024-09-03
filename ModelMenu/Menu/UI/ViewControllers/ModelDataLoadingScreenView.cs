@@ -4,7 +4,6 @@ using ModelMenu.Menu.Services;
 using ModelMenu.Models;
 using SiraUtil.Logging;
 using System;
-using System.Threading.Tasks;
 using TMPro;
 using Zenject;
 
@@ -24,24 +23,25 @@ internal class ModelDataLoadingScreenView : BSMLAutomaticViewController
     private readonly string cachingStatusTextMessage = "Caching installed models";
     private readonly string apiStatusTextMessage = "Fetching external model data";
 
-    private void FormatStatus(string message, ProgressPercent progress) =>
-        statusText.text = $"{message} - {progress}";
+    [UIAction("cancel")]
+    private void Cancel()
+    {
+        modelMenuFlowCoordinator.DidFinish();
+    }
 
     [UIAction("#post-parse")]
     private async void PostParse()
     {
-        var cacheInit = installedAssetCache.ManualInit(new Progress<ProgressPercent>((p) => FormatStatus(cachingStatusTextMessage, p)));
-        var apiInit = modelApi.GetAllModelInfoAsync(new Progress<bool>(/* do... something. idk. */));
+        var cacheInit = installedAssetCache.ManualInit(
+            new Progress<ProgressPercent>((p) => statusText.text = $"{cachingStatusTextMessage} - {p}"));
+        
+        // can't get progress to work with modelsaber atm
+        var apiInit = modelApi.GetAllModelInfoAsync(); 
         
         await cacheInit;
+        statusText.text = apiStatusTextMessage;
         await apiInit;
 
-        modelMenuFlowCoordinator.TransitionToMainView();
-    }
-
-    [UIAction("cancel")]
-    private void Cancel()
-    {
-        modelMenuFlowCoordinator.Exit();
+        modelMenuFlowCoordinator.TransitionToView(ModelMenuFlowCoordinator.ViewType.Main);
     }
 }

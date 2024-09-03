@@ -1,53 +1,69 @@
 <bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://monkeymanboy.github.io/BSML-Docs/BSMLSchema.xsd'>
 
-  <horizontal horizontal-fit='PreferredSize' spacing='2' preferred-height='75.5'>
+  <horizontal>
     <!--Left-hand panels-->
-    <vertical child-expand-height='false' pref-width='40' vertical-fit='Unconstrained' spacing='2'>
-      <vertical child-expand-height='false' vertical-fit='Unconstrained' horizontal-fit='Unconstrained' bg='round-rect-panel' bg-alpha='0.5' pad='2'>
-        <button text='Search' on-click='open-search-modal'/>
-        <dropdown-list-setting text='' value='model-type-filter' choices='model-type-choices' apply-on-change='true'/>
-        <dropdown-list-setting text='' hover-hint='Sort by' value='sort-type-filter' choices='sort-type-choices' apply-on-change='true'/>
+    <vertical pref-width='40'>
+      <!--Filters-->
+      <vertical horizontal-fit='Unconstrained' bg='round-rect-panel' bg-alpha='0.5' pad='1' pad-left='2' pad-right='2'>
+        <dropdown-list-setting text='Type' id='model-type-filter' value='model-type-filter' choices='model-type-choices' word-wrapping='false' apply-on-change='true'/>
+        <dropdown-list-setting text='Sort by' id='sort-type-filter' value='sort-type-filter' choices='sort-type-choices' word-wrapping='false' apply-on-change='true'/>
+        <dropdown-list-setting text='Order by' id='order-by-filter' value='order-by-filter' choices='order-by-choices' word-wrapping='false' apply-on-change='true'/>
       </vertical>
-
-      <vertical child-expand-height='false' preferred-height='10' bg='round-rect-panel' bg-alpha='0.5' horizontal-fit='Unconstrained' pad='1'>
-        <horizontal vertical-fit='Unconstrained' spacing='5'>
-          <button on-click='page-down' text='prev'/>
-          <horizontal ignore-layout='true'>
-            <text id='page-index' text='1' align='Midline' raycast-target='false'/>
-          </horizontal>
-          <button on-click='page-up' text='next'/>
-        </horizontal>
-      </vertical>
-      
-      <vertical child-expand-height='false' preferred-height='40' horizontal-fit='Unconstrained' bg='round-rect-panel' bg-alpha='0.5' pad='1'>
+      <!--Selected model-->
+      <horizontal bg='round-rect-panel' bg-alpha='0.5' pad='1' horizontal-fit='PreferredSize' pref-width='40' preferred-height='40'>
         <stack>
-          <clickable-image id='big-preview' on-click='show-model-info'/>
-          <horizontal child-control-height='false' child-control-width='false' child-expand-height='false' child-expand-width='false' child-align='UpperRight'
-                      vertical-fit='Unconstrained' horizontal-fit='Unconstrained' pad='1'>
-            <dl-button hover-hint='Download' id='download-button' on-click='download' active='false' size-delta='10'/>
-          </horizontal>
+          <clickable-image id='big-preview' on-click='show-model-info' preserve-aspect='true'/>
+          <clickable-image id='download-button' src='#FullCircle128' image-color='#EEE5' hover-hint='Download' on-click='download' active='false' 
+                           ignore-layout='true' size-delta='12' anchor-min='1 1' anchor-max='1 1' anchored-position='-8 -8'>
+            <image src='#DownloadIcon' local-scale='0.4' anchored-position='0 1'/>
+          </clickable-image>
+          <!--<dl-button id='download-button' hover-hint='Download' on-click='download' active='false' ignore-layout='true' size-delta='12' anchor-min='1 1' anchor-max='1 1-->
         </stack>
-      </vertical>
+      </horizontal>
     </vertical>
-    <!--Models grid-->
-    <horizontal pref-width='112.5' vertical-fit='Unconstrained' bg='round-rect-panel' bg-alpha='0.5' pad='1'>
-      <grid id='model-grid' cell-size='18' spacing='0.5' horizontal-fit='Unconstrained' >
-        <horizontal id='model-tile' background='round-rect-panel' background-color='#FFFA' horizontal-fit='Unconstrained' vertical-fit='Unconstrained'>
-          <stack>
-            <clickable-image name='ModelImage'/>
-            <loading-indicator ignore-layout='true' size-delta='12'/>
-            <text font-size='2' text='?' align='Center'/>
-            <image name='CheckmarkIcon' ignore-layout='true' size-delta='12'/>
-          </stack>
+    <!--Right-hand panels-->
+    <vertical>
+      <!--Top bar-->
+      <horizontal bg='round-rect-panel' bg-alpha='0.5' preferred-height='8'>
+        <!--Search button-->
+        <horizontal horizontal-fit='PreferredSize' spacing='2'
+                    ignore-layout='true' anchor-min='0 0.5' anchor-max='0 0.5' anchored-position='16 0'>
+          <button text='Search' on-click='open-search-modal' preferred-width='20'/>
+          <image src='#SearchIcon' preserve-aspect='true'/>
         </horizontal>
-      </grid>
-    </horizontal>
+        <!--Page buttons-->
+        <horizontal horizontal-fit='PreferredSize' spacing='2' ignore-layout='true' anchored-position='10 0'>
+          <clickable-image id='page-down-button' on-click='page-down' src='#ArrowIcon' preserve-aspect='true' size-delta='5'
+                           ignore-layout='true' anchor-min='0 0.5' anchor-max='0 0.5' anchored-position='-10 0'/>
+          <horizontal child-expand-width='true' child-control-width='true' ignore-layout='true'>
+            <text id='page-index' text='' align='Midline' raycast-target='false'/>
+          </horizontal>
+          <clickable-image id='page-up-button' on-click='page-up' src='#ArrowIcon' preserve-aspect='true' size-delta='5'
+                           ignore-layout='true' anchor-min='1 0.5' anchor-max='1 0.5' anchored-position='10 0'/>
+        </horizontal>
+        <!--Settings button-->
+        <clickable-image on-click='show-settings' hover-hint='Settings' src='#SettingsIcon' preserve-aspect='true'
+                         ignore-layout='true' anchor-min='1 0.5' anchor-max='1 0.5' size-delta='6' anchored-position='-5 0'/>
+      </horizontal>
+      <!--Model grid-->
+      <horizontal pref-height='65' bg='round-rect-panel' bg-alpha='0.5' pad='1'>
+        <grid id='model-grid' cell-size='15' spacing='1' horizontal-fit='Unconstrained' >
+          <horizontal id='model-tile' background='round-rect-panel' background-color='#FFFA' horizontal-fit='Unconstrained' vertical-fit='Unconstrained'>
+            <stack>
+              <clickable-image id='model-image' name='ModelImage'/>
+              <loading-indicator ignore-layout='true' size-delta='12' raycast-target='false'/>
+              <text font-size='2' text='?' align='Center'/>
+              <image id='checkmark-icon' name='CheckmarkIcon' size-delta='6' raycast-target='false'
+                     ignore-layout='true' anchor-min='1 1' anchor-max='1 1' anchored-position='-4 -4'/>
+            </stack>
+          </horizontal>
+        </grid>
+      </horizontal>
+    </vertical>
   </horizontal>
 
-  
-  
   <modal id='model-info-modal' size-delta-x='60' size-delta-y='40' clickerino-offerino-closerino='true'>
-    <vertical child-expand-height='false' horizontal-fit='PreferredSize' preferred-width='60' pad='1'>
+    <vertical horizontal-fit='PreferredSize' preferred-width='60' pad='1'>
       <text id='info-modal-title' text='hello!' align='Midline' overflow-mode='Ellipsis' word-wrapping='false' font-size='4'/>
       <horizontal preferred-height='20'>
         <text id='info-modal-description' text='secret message!' align='Midline' overflow-mode='Ellipsis' word-wrapping='true' font-size='3'/>

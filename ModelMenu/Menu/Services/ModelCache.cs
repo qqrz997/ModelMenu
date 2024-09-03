@@ -1,5 +1,6 @@
 ﻿using ModelMenu.App;
 using ModelMenu.Models;
+using ModelMenu.Utilities.Extensions;
 using SiraUtil.Logging;
 using System;
 using System.IO;
@@ -17,7 +18,7 @@ internal class ModelCache
     private ModelCache(SiraLog log, PluginConfig config, InstalledAssetCache installedAssetCache) =>
         (this.log, this.config, this.installedAssetCache) = (log, config, installedAssetCache);
 
-    public IModel[] CachedModels { get; set; } = []; // todo - ￣へ￣
+    public IModel[] CachedModels { get; set; } = [];
 
     internal record PageRequestInfo(IModel[] Models, int TotalPages);
 
@@ -33,10 +34,15 @@ internal class ModelCache
         if (searchOptions.HideInstalled)
         {
             // remove installed assets from results
-            filtered = filtered.Where(info => !installedAssetCache.CachedModelHashes.Contains(info.Hash));
+            filtered = filtered.WhereNot(installedAssetCache.IsAssetInstalled);
         }
 
-        // order the results
+        if (searchOptions.AgeOptions.AgeRating != AgeRating.AdultOnly)
+        {
+            // remove nsfw models from results
+            filtered = filtered.Where(info => info is not AdultOnlyModel);
+        }
+
         if (searchOptions.SortOptions.SortBy != SortBy.Date)
         {
             filtered = filtered.OrderBy(info => searchOptions.SortOptions.SortBy switch
@@ -44,6 +50,11 @@ internal class ModelCache
                 SortBy.Name => info.Name.FullName,
                 SortBy.Author or _ => info.Author.FullName,
             });
+        }
+
+        if (searchOptions.SortOptions.OrderBy == OrderBy.Ascending)
+        {
+            filtered = filtered.Reverse();
         }
 
         // take a page of the results

@@ -1,13 +1,12 @@
-﻿using IPA.Utilities.Async;
-using ModelMenu.Menu.Services;
+﻿using ModelMenu.Menu.Services;
 using ModelMenu.Models;
+using ModelMenu.Utilities.Extensions;
 using SiraUtil.Logging;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace ModelMenu.Menu.UI;
 
@@ -16,20 +15,20 @@ internal class ModelTileManager
     private readonly SiraLog log;
     private readonly ModelsaberApi modelApi;
     private readonly ModelCache modelCache;
-    private readonly PlayerDataModel playerDataModel;
-    private readonly ModelThumbnailCache modelThumbnailCache;
     private readonly InstalledAssetCache installedAssetCache;
+    private readonly ModelThumbnailCache thumbnailCache;
 
-    private ModelTileManager(SiraLog log, ModelsaberApi modelApi, ModelCache modelCache, PlayerDataModel playerDataModel, ModelThumbnailCache modelThumbnailCache, InstalledAssetCache installedAssetCache)
+    private ModelTileManager(SiraLog log, ModelsaberApi modelApi, ModelCache modelCache, InstalledAssetCache installedAssetCache, ModelThumbnailCache thumbnailCache)
     {
         this.log = log;
         this.modelApi = modelApi;
         this.modelCache = modelCache;
-        this.playerDataModel = playerDataModel;
-        this.modelThumbnailCache = modelThumbnailCache;
         this.installedAssetCache = installedAssetCache;
+        this.thumbnailCache = thumbnailCache;
     }
 
+    private const int ThumbnailSize = 128;
+    private const int PixelatedThumbnailSize = 16;
     private CancellationTokenSource tokenSource;
 
     // todo - try using a type to represent a collection of tiles?
@@ -43,9 +42,7 @@ internal class ModelTileManager
 
         try
         {
-            var shouldHideExplicitContent = playerDataModel.playerData.desiredSensitivityFlag != PlayerSensitivityFlag.Explicit;
             var pageInfo = modelCache.GetPage(pageTiles.Length, searchOptions);
-
             callback(pageInfo);
 
             for (int i = 0; i < pageTiles.Length; i++)
@@ -62,12 +59,32 @@ internal class ModelTileManager
                 pageTiles[i].Thumbnail = null;
             }
 
-            var tilesToLoadThumbnails = shouldHideExplicitContent
-                ? pageTiles.Where(t => t.Model is not NoModel && t.Model is not AdultOnlyModel)
-                : pageTiles.Where(t => t.Model is not NoModel);
+            foreach (var tile in pageTiles)
+            {
+                tile.SetLoading(true);
+                tile.Thumbnail = null;
+            }
 
-            var tasks = tilesToLoadThumbnails.Select(tile => SetThumbnailAsync(tile, tokenSource.Token));
-            await Task.WhenAll(tasks);
+            var tilesToLoadThumbnails = pageTiles.Where(t => t.Model is not NoModel);
+
+            // todo - rate limit this
+
+            foreach (var tile in tilesToLoadThumbnails)
+            {
+                if (tokenSource.IsCancellationRequested) break;
+
+                var thumbnailData = thumbnailCache.TryGetData(tile.Model.Hash, out var cachedData) ? cachedData
+                    : await modelApi.GetThumbnailAsync(tile.Model, tokenSource.Token);
+
+                var (thumbnailSize, filterMode) = searchOptions.AgeOptions.ShouldCensorNsfw && tile.Model is AdultOnlyModel
+                    ? (PixelatedThumbnailSize, FilterMode.Point)
+                    : (ThumbnailSize, FilterMode.Trilinear);
+
+                tile.Thumbnail = thumbnailCache.TryGetSpriteForDimension(tile.Model.Hash, thumbnailSize, out var cachedSprite) ? cachedSprite
+                    : thumbnailCache.AddSprite(tile.Model.Hash, thumbnailData.ToSprite(thumbnailSize, filterMode));
+
+                tile.SetLoading(false);
+            }
         }
 #if DEBUG
         catch (Exception e)
@@ -77,22 +94,5 @@ internal class ModelTileManager
 #else
         catch { }
 #endif
-    }
-
-    private async Task SetThumbnailAsync(ModelTile tile, CancellationToken token)
-    {
-        tile.SetLoading(true);
-        tile.Thumbnail = null;
-
-        var thumbnail = modelThumbnailCache.GetThumbnail(tile.Model.Hash) is ModelThumbnail cached ? cached
-            : await modelApi.GetThumbnailAsync(tile.Model, token) is ModelThumbnail loaded ? loaded
-            : null;
-
-        if (thumbnail is not null)
-        {
-            modelThumbnailCache.Add(tile.Model.Hash, thumbnail);
-            tile.Thumbnail = thumbnail.GetSprite(128);
-        }
-        tile.SetLoading(false);
     }
 }

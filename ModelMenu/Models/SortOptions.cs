@@ -1,3 +1,3 @@
 ﻿namespace ModelMenu.Models;
 
-internal readonly record struct SortOptions(SortBy SortBy);
+internal record SortOptions(SortBy SortBy, OrderBy OrderBy);

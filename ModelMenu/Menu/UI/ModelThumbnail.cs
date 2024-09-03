@@ -1,14 +1,33 @@
-﻿using ModelMenu.Utilities;
-using ModelMenu.Utilities.Extensions;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using UnityEngine;
+﻿/*namespace ModelMenu.Menu.UI;
 
-namespace ModelMenu.Menu.UI;
+internal abstract class Thumbnail
+{
+    public abstract Sprite Sprite { get; }
+}
 
-internal abstract class Thumbnail;
+internal sealed class NoThumbnail : Thumbnail
+{
+    public override Sprite Sprite => null;
+}
 
-internal sealed class NoThumbnail : Thumbnail;
+internal sealed class CensoredThumbnail(Sprite sprite) : Thumbnail
+{
+    public override Sprite Sprite { get; } = sprite;
+
+    private Sprite CreateThumbnail(int dimension)
+    {
+        var imageData = dimension == 0 ? data : ImageManipulation.DownscaleImage(data, dimension, ImageFormat.Jpeg);
+        return new Texture2D(2, 2).CreateSprite(imageData);
+    }
+
+    private Sprite CreateCensoredThumbnail()
+    {
+        var downscaledData = ImageManipulation.DownscaleImage(data, 16, ImageFormat.Jpeg);
+        var sprite = new Texture2D(2, 2).CreateSprite(downscaledData);
+        sprite.texture.filterMode = FilterMode.Point;
+        return sprite;
+    }
+}
 
 internal sealed class ModelThumbnail(byte[] data) : Thumbnail
 {
@@ -24,4 +43,4 @@ internal sealed class ModelThumbnail(byte[] data) : Thumbnail
         var imageData = dimension == 0 ? data : ImageManipulation.DownscaleImage(data, dimension, ImageFormat.Jpeg);
         return new Texture2D(2, 2).CreateSprite(imageData);
     }
-}
+}*/

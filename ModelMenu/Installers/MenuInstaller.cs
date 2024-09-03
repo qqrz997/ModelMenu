@@ -13,6 +13,7 @@ internal class MenuInstaller : Installer
         Container.Bind<ModelMenuFlowCoordinator>().FromNewComponentOnNewGameObject().AsSingle();
         Container.Bind<ModelDataLoadingScreenView>().FromNewComponentAsViewController().AsSingle();
         Container.Bind<MainView>().FromNewComponentAsViewController().AsSingle();
+        Container.Bind<SettingsView>().FromNewComponentAsViewController().AsSingle();
         Container.Bind<ModelTileManager>().AsSingle();
 
         Container.BindInterfacesAndSelfTo<ModelsaberApi>().AsSingle();

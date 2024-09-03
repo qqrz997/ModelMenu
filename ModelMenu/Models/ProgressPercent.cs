@@ -1,14 +1,14 @@
 ﻿namespace ModelMenu.Models;
 
-internal class ProgressPercent(int max)
+internal class ProgressPercent(long max)
 {
-    private readonly int max = max;
+    private readonly long max = max;
 
     public int Percent { get; private set; } = 0;
 
-    public bool CalculateChange(int numerator)
+    public bool CalculateChange(long numerator)
     {
-        int newPercent = numerator * 100 / max;
+        int newPercent = (int)(numerator * 100 / max);
         if (newPercent == Percent)
             return false;
 

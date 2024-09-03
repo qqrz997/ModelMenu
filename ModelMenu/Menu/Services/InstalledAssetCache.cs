@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,9 +24,9 @@ internal class InstalledAssetCache
         cacheFilePath = Path.Combine(Directories.ModData.FullName, "cache");
     }
 
+    private HashSet<string> CachedModelHashes { get; set; } = [];
+    
     public Dictionary<string, string> CachedModels { get; private set; } = [];
-
-    public HashSet<string> CachedModelHashes { get; private set; } = [];
 
     public bool TryGetHash(string assetPath, out string hash) =>
         CachedModels.TryGetValue(assetPath, out hash);
@@ -67,14 +66,13 @@ internal class InstalledAssetCache
         }
 
         var jsonString = JsonConvert.SerializeObject(cache);
-        File.WriteAllText(cacheFilePath, jsonString);
+        await File.WriteAllTextAsync(cacheFilePath, jsonString);
 
         sw.Stop();
         log.Debug($"Cache reinitialization done in {sw.Elapsed}");
 
         CachedModelHashes = [.. cache.Values];
     }
-
 
     private async Task<List<(string directory, string hash)>> GetFileHashes(IEnumerable<string> directories, IProgress<ProgressPercent> progress)
     {

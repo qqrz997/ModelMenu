@@ -1,6 +1,6 @@
 ﻿namespace ModelMenu.Models;
 
-internal readonly record struct ModelSearchOptions
+internal record ModelSearchOptions
 (
     int PageIndex,
     string SearchPhrase,

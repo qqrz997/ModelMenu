@@ -1,12 +1,13 @@
 ﻿using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.Components;
+using BeatSaberMarkupLanguage.Components.Settings;
 using BeatSaberMarkupLanguage.ViewControllers;
 using HMUI;
-using IPA.Utilities;
-using IPA.Utilities.Async;
 using ModelMenu.App;
 using ModelMenu.Menu.Services;
 using ModelMenu.Models;
+using ModelMenu.Utilities;
+using ModelMenu.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,9 +30,11 @@ internal class MainView : BSMLAutomaticViewController
     [Inject] private readonly ModelAssetDownloader modelDownloader;
     [Inject] private readonly InstalledAssetCache installedAssetCache;
     [Inject] private readonly PlayerDataModel playerDataModel;
+    [Inject] private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator;
 
     private AssetType modelTypeFilter = AssetType.Saber;
     private SortBy sortTypeFilter = SortBy.Date;
+    private OrderBy orderByFilter = OrderBy.Descending;
     private string searchFilter = string.Empty;
 
     [UIValue("model-type-choices")] private List<object> modelTypeChoices = Enum.GetNames(typeof(AssetType)).ToList<object>();
@@ -58,6 +61,25 @@ internal class MainView : BSMLAutomaticViewController
         }
     }
 
+    [UIValue("order-by-choices")] private List<object> orderByChoices = Enum.GetNames(typeof(OrderBy)).ToList<object>();
+    [UIValue("order-by-filter")]
+    private string OrderByFilter
+    {
+        get => orderByFilter.ToString();
+        set
+        {
+            orderByFilter = (OrderBy)Enum.Parse(typeof(OrderBy), value);
+            UpdateFilter();
+        }
+    }
+
+    [UIComponent("model-type-filter")]
+    private DropDownListSetting modelTypeDropdown;
+    [UIComponent("sort-type-filter")]
+    private DropDownListSetting sortTypeDropdown;
+    [UIComponent("order-by-filter")]
+    private DropDownListSetting orderByDropdown;
+
     [UIValue("search-filter")]
     private string SearchFilter
     {
@@ -81,8 +103,12 @@ internal class MainView : BSMLAutomaticViewController
 
     [UIComponent("big-preview")]
     private ClickableImage previewImage;
-    [UIObject("download-button")]
-    private GameObject downloadButton;
+    [UIComponent("download-button")]
+    private ClickableImage downloadButton;
+    [UIComponent("page-down-button")]
+    private ClickableImage pageDownButton;
+    [UIComponent("page-up-button")]
+    private ClickableImage pageUpButton;
 
     [UIComponent("page-index")]
     private TextMeshProUGUI pageIndexText;
@@ -93,11 +119,17 @@ internal class MainView : BSMLAutomaticViewController
     [UIObject("model-tile")]
     private GameObject modelTileOriginal;
     private readonly ModelTile[] gridModelTiles = new ModelTile[24];
+    [UIComponent("model-image")]
+    private ImageView modelTileImage;
+    [UIComponent("checkmark-icon")]
+    private ImageView modelCheckmark;
 
-    private const int tilesPerPage = 24;
+    private const int TilesPerPage = 24;
+    private const int BigPreviewSize = 512;
 
     private IModel selectedModel = null;
-    private int currentPage = 0;
+    private int currentPageIndex = 0;
+    private int lastPageIndex = -1;
 
     [UIAction("#post-parse")]
     private async void PostParse()
@@ -108,28 +140,32 @@ internal class MainView : BSMLAutomaticViewController
         var roundEdgeMaterial = Resources.FindObjectsOfTypeAll<Material>().First(m => m.name == "UINoGlowRoundEdge");
         previewImage.material = roundEdgeMaterial;
 
-        var tileImages = modelTileOriginal.GetComponentsInChildren<ImageView>();
-        tileImages.First(i => i.gameObject.name == "ModelImage").material = roundEdgeMaterial;
-        tileImages.First(i => i.gameObject.name == "CheckmarkIcon").sprite = resources.GetSpriteResource("ModelMenu.Resources.checkmark-icon-low.png");
+        pageDownButton.transform.rotation = Quaternion.Euler(0, 0, 270);
+        pageUpButton.transform.rotation = Quaternion.Euler(0, 0, 90);
 
-        for (int i = 0; i < tilesPerPage; i++)
+        modelTileImage.material = roundEdgeMaterial;
+        modelCheckmark.sprite = resources.GetSpriteResource("ModelMenu.Resources.checkmark-icon-low.png");
+
+        modelTypeDropdown.SetDropdownSize(26f, 0f);
+        sortTypeDropdown.SetDropdownSize(26f, 0f);
+        orderByDropdown.SetDropdownSize(26f, 0f);
+
+        for (int i = 0; i < TilesPerPage; i++)
         {
             var currentTile = i == 0 ? modelTileOriginal : Instantiate(modelTileOriginal, modelGrid.transform, false);
             gridModelTiles[i] = new(currentTile, i);
             gridModelTiles[i].TileClicked += TileClicked;
         }
 
-        await ShowPage(currentPage);
+        // until this is fixed https://github.com/monkeymanboy/BeatSaberMarkupLanguage/issues/148
+        downloadButton.PointerExitEvent += delegate { downloadButton.color = new(0.878f, 0.878f, 0.878f, 0.314f); };
+
+        await ShowCurrentPage();
     }
 
-    private void TileClicked(int gridIndex)
-    {
-        selectedModel = gridModelTiles[gridIndex].Model;
-        previewImage.sprite = modelThumbnailCache.GetThumbnail(selectedModel.Hash) is ModelThumbnail modelThumbnail 
-            ? modelThumbnail.GetSprite() : null;
-        downloadButton.gameObject.SetActive(!installedAssetCache.IsAssetInstalled(selectedModel)
-            && !modelDownloader.IsModelDownloading(selectedModel));
-    }
+    [UIAction("show-settings")]
+    private void ShowSettings() => 
+        modelMenuFlowCoordinator.TransitionToView(ModelMenuFlowCoordinator.ViewType.Settings);
 
     [UIAction("show-model-info")]
     private void ShowModelInfo()
@@ -137,8 +173,8 @@ internal class MainView : BSMLAutomaticViewController
         if (selectedModel != null)
         {
             infoModalTitle.text = $"{selectedModel.Name} by {selectedModel.Author}";
-            infoModalDescription.text = !string.IsNullOrWhiteSpace(selectedModel.Description.FullName) 
-                ? selectedModel.Description.FullName : "No description";
+            infoModalDescription.text = string.IsNullOrWhiteSpace(selectedModel.Description.FullName) ? "No description" 
+                : selectedModel.Description.FullName;
             modelInfoModal.Show(true);
         }
     }
@@ -149,18 +185,17 @@ internal class MainView : BSMLAutomaticViewController
     [UIAction("page-up")]
     private async void PageUp()
     {
-        // todo - need a definitive way to know when it is on the last page
-        if (currentPage >= int.MaxValue || gridModelTiles.Any(t => t.Model is NoModel)) return;
-        currentPage++;
-        await ShowPage(currentPage);
+        if (currentPageIndex >= lastPageIndex) return;
+        currentPageIndex++;
+        await ShowCurrentPage();
     }
 
     [UIAction("page-down")]
     private async void PageDown()
     {
-        if (currentPage <= 0) return;
-        currentPage--;
-        await ShowPage(currentPage);
+        if (currentPageIndex <= 0) return;
+        currentPageIndex--;
+        await ShowCurrentPage();
     }
 
     [UIAction("download")]
@@ -168,7 +203,7 @@ internal class MainView : BSMLAutomaticViewController
     {
         if (!installedAssetCache.IsAssetInstalled(selectedModel))
         {
-            downloadButton.SetActive(false);
+            downloadButton.gameObject.SetActive(false);
             await modelDownloader.InstallAssetAsync(selectedModel, OnDownloadCompleted);
         }
     }
@@ -177,10 +212,49 @@ internal class MainView : BSMLAutomaticViewController
     private void OpenSearchModal() =>
         searchModal.Show(true);
 
-    private async void UpdateFilter()
+    public async void UpdateFilter()
     {
-        currentPage = 0;
-        await ShowPage(currentPage);
+        currentPageIndex = 0;
+        await ShowCurrentPage();
+    }
+
+    private void TileClicked(int gridIndex)
+    {
+        selectedModel = gridModelTiles[gridIndex].Model;
+
+        var (previewSize, filterMode) = config.CensorNsfwThumbnails && selectedModel is AdultOnlyModel
+            ? (16, FilterMode.Point) 
+            : (BigPreviewSize, FilterMode.Trilinear); 
+
+        previewImage.sprite = modelThumbnailCache.TryGetSpriteForDimension(selectedModel.Hash, previewSize, out var sprite) ? sprite 
+            : !modelThumbnailCache.TryGetData(selectedModel.Hash, out var thumbnailData) ? null
+            : thumbnailData.ToSprite(previewSize, filterMode);
+
+        downloadButton.gameObject.SetActive(!installedAssetCache.IsAssetInstalled(selectedModel)
+            && !modelDownloader.IsModelDownloading(selectedModel));
+    }
+
+    public async Task ShowCurrentPage()
+    {
+        var ageRating = playerDataModel.playerData.desiredSensitivityFlag == PlayerSensitivityFlag.Explicit
+            ? AgeRating.AdultOnly
+            : AgeRating.AllAges;
+
+        var searchOptions = new ModelSearchOptions(
+            currentPageIndex,
+            searchFilter,
+            modelTypeFilter,
+            new SortOptions(sortTypeFilter, orderByFilter),
+            new AgeOptions(ageRating, config.CensorNsfwThumbnails),
+            config.HideInstalledModels);
+
+        await modelTileManager.UpdatePageAsync(gridModelTiles, searchOptions, OnPageUpdated);
+    }
+
+    private void OnPageUpdated(ModelCache.PageRequestInfo pageInfo)
+    {
+        lastPageIndex = pageInfo.TotalPages - 1;
+        pageIndexText.text = $"{currentPageIndex + 1} / {pageInfo.TotalPages}";
     }
 
     private void OnDownloadCompleted(IModel downloadedModel, bool success)
@@ -191,30 +265,9 @@ internal class MainView : BSMLAutomaticViewController
             gridModelTiles.First(t => t.Model == downloadedModel).IsInstalled = true;
             if (gridModels.Contains(selectedModel) && selectedModel == downloadedModel)
             {
-                downloadButton.SetActive(false);
+                downloadButton.gameObject.SetActive(false);
             }
         }
         // todo - do something on fail?
-    }
-
-    private async Task ShowPage(int pageNumber)
-    {
-        var showAdultOnly = playerDataModel.playerData.desiredSensitivityFlag == PlayerSensitivityFlag.Explicit;
-        var searchOptions = new ModelSearchOptions(
-            pageNumber,
-            searchFilter,
-            modelTypeFilter, 
-            new SortOptions(sortTypeFilter),
-            new AgeOptions(showAdultOnly ? AgeRating.AdultOnly : AgeRating.AllAges),
-            HideInstalled: false); // todo - figure out where this setting should live
-                                   // could either be config or another view controller 
-        await modelTileManager.UpdatePageAsync(gridModelTiles, searchOptions, 
-            (page) => pageIndexText.text = $"{pageNumber + 1} / {page.TotalPages}");
-    }
-
-    protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
-    {
-        base.DidActivate(firstActivation, addedToHierarchy, screenSystemEnabling);
-        if (!firstActivation) UnityMainThreadTaskScheduler.Factory.StartNew(() => ShowPage(currentPage));
     }
 }

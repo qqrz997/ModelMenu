@@ -4,7 +4,6 @@ using ModelMenu.Models;
 using ModelMenu.Utilities;
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -36,8 +35,6 @@ internal class ModelTile
         var images = tileHost.transform.GetComponentsInChildren<ImageView>();
         loadingIndicator = images.First(i => i.sprite.name == "LoadingIndicator");
         checkmarkIcon = images.First(i => i.gameObject.name == "CheckmarkIcon");
-        checkmarkIcon.raycastTarget = false;
-        loadingIndicator.raycastTarget = false;
     }
 
     public Action<int> TileClicked;

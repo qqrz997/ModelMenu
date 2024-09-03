@@ -6,6 +6,7 @@ using Zenject;
 
 namespace ModelMenu.App;
 
+// not a fan of this
 internal class EmbeddedResources : IInitializable
 {
     private readonly Dictionary<string, object> cachedResources = [];

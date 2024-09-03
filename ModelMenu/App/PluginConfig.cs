@@ -6,6 +6,7 @@ namespace ModelMenu.App;
 
 internal class PluginConfig
 {
-    // to be implemented
-    public virtual bool CensorAdultOnlyThumbnails { get; set; } = true;
+    public virtual bool CensorNsfwThumbnails { get; set; } = true;
+
+    public virtual bool HideInstalledModels { get; set; } = false;
 }

@@ -1,3 +1,3 @@
 ﻿namespace ModelMenu.Models;
 
-internal readonly record struct AgeOptions(AgeRating AgeRating);
+internal record AgeOptions(AgeRating AgeRating, bool ShouldCensorNsfw);

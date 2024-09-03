@@ -17,9 +17,18 @@
   <ItemGroup>
     <None Remove="LICENSE" />
     <None Remove="Menu\UI\BSML\model-data-loading-screen.bsml" />
+    <None Remove="Menu\UI\BSML\settings.bsml" />
     <None Remove="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Menu\UI\BSML\settings.bsml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="BGLib.UnityExtension">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BGLib.UnityExtension.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="mscorlib">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\mscorlib.dll</HintPath>
     </Reference>
