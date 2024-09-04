@@ -126,6 +126,7 @@ internal class MainView : BSMLAutomaticViewController
 
     private const int TilesPerPage = 24;
     private const int BigPreviewSize = 512;
+    private const int PixelatedPreviewSize = 10;
 
     private IModel selectedModel = null;
     private int currentPageIndex = 0;
@@ -223,7 +224,7 @@ internal class MainView : BSMLAutomaticViewController
         selectedModel = gridModelTiles[gridIndex].Model;
 
         var (previewSize, filterMode) = config.CensorNsfwThumbnails && selectedModel is AdultOnlyModel
-            ? (16, FilterMode.Point) 
+            ? (PixelatedPreviewSize, FilterMode.Point) 
             : (BigPreviewSize, FilterMode.Trilinear); 
 
         previewImage.sprite = modelThumbnailCache.TryGetSpriteForDimension(selectedModel.Hash, previewSize, out var sprite) ? sprite 

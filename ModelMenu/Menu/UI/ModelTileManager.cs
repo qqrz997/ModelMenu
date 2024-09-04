@@ -28,7 +28,7 @@ internal class ModelTileManager
     }
 
     private const int ThumbnailSize = 128;
-    private const int PixelatedThumbnailSize = 16;
+    private const int PixelatedThumbnailSize = 10; // todo - there is another way to censor sprites using KawaseBlurRendererSO
     private CancellationTokenSource tokenSource;
 
     // todo - try using a type to represent a collection of tiles?
