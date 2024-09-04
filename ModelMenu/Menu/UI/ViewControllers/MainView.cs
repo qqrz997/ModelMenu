@@ -227,6 +227,8 @@ internal class MainView : BSMLAutomaticViewController
 
     public void UpdateSelectedModelPreview()
     {
+        if (selectedModel == null) return;
+
         var (previewSize, filterMode) = config.CensorNsfwThumbnails && selectedModel is AdultOnlyModel
             ? (PixelatedPreviewSize, FilterMode.Point)
             : (BigPreviewSize, FilterMode.Trilinear);
