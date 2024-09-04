@@ -40,7 +40,7 @@ internal class ModelDataLoadingScreenView : BSMLAutomaticViewController
             new Progress<ProgressPercent>((p) => statusText.text = $"{cachingStatusTextMessage} - {p}"));
 
         // can't get progress to work with modelsaber atm
-        var apiInit = modelApi.GetAllModelInfoAsync();
+        var apiInit = modelApi.ManualInit();
 
         await cacheInit;
         statusText.text = apiStatusTextMessage;

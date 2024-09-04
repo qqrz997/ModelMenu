@@ -222,12 +222,16 @@ internal class MainView : BSMLAutomaticViewController
     private void TileClicked(int gridIndex)
     {
         selectedModel = gridModelTiles[gridIndex].Model;
+        UpdateSelectedModelPreview();
+    }
 
+    public void UpdateSelectedModelPreview()
+    {
         var (previewSize, filterMode) = config.CensorNsfwThumbnails && selectedModel is AdultOnlyModel
-            ? (PixelatedPreviewSize, FilterMode.Point) 
-            : (BigPreviewSize, FilterMode.Trilinear); 
+            ? (PixelatedPreviewSize, FilterMode.Point)
+            : (BigPreviewSize, FilterMode.Trilinear);
 
-        previewImage.sprite = modelThumbnailCache.TryGetSpriteForDimension(selectedModel.Hash, previewSize, out var sprite) ? sprite 
+        previewImage.sprite = modelThumbnailCache.TryGetSpriteForDimension(selectedModel.Hash, previewSize, out var sprite) ? sprite
             : !modelThumbnailCache.TryGetData(selectedModel.Hash, out var thumbnailData) ? null
             : thumbnailData.ToSprite(previewSize, filterMode);
 
@@ -235,7 +239,7 @@ internal class MainView : BSMLAutomaticViewController
             && !modelDownloader.IsModelDownloading(selectedModel));
     }
 
-    public async Task ShowCurrentPage()
+    private async Task ShowCurrentPage()
     {
         var ageRating = playerDataModel.playerData.desiredSensitivityFlag == PlayerSensitivityFlag.Explicit
             ? AgeRating.AdultOnly

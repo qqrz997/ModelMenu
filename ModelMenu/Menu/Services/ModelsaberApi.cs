@@ -35,7 +35,9 @@ internal class ModelsaberApi
         thumbnailClient.DefaultRequestHeaders.Add("User-Agent", $"{Plugin.Name}/{Plugin.Version}");
     }
 
-    public async Task GetAllModelInfoAsync(/*IProgress<ProgressPercent> progress*/) // todo - add cancellation, percent progress
+    private const int MaxThumbnailSize = 512;
+
+    public async Task ManualInit()
     {
 #if DEBUG
         await Task.Delay(2000);
@@ -94,11 +96,11 @@ internal class ModelsaberApi
         var thumbnailResponse = await thumbnailClient.GetAsync(model.ThumbnailUri, token);
         if (!thumbnailResponse.IsSuccessStatusCode)
         {
-            log.Warn($"Problem encountered when trying to get thumbnail for {model.Name}\n{thumbnailResponse.ReasonPhrase}");
+            log.Warn($"Problem encountered when trying to get thumbnail for {model.Name}: {thumbnailResponse.ReasonPhrase}");
             return null;
         }
         var responseData = await thumbnailResponse.Content.ReadAsByteArrayAsync();
-        var imageData = ImageManipulation.DownscaleImage(responseData, 512, ImageFormat.Jpeg);
+        var imageData = ImageManipulation.DownscaleImage(responseData, MaxThumbnailSize, ImageFormat.Jpeg);
 
         return thumbnailCache.AddData(model.Hash, imageData);
     }

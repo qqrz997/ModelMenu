@@ -5,7 +5,7 @@ using ModelMenu.Installers;
 using SiraUtil.Zenject;
 using Hive.Versioning;
 using System.Reflection;
-using ModelMenu.Menu.CustomTags;
+//using ModelMenu.Menu.CustomTags;
 using IPA.Config;
 using IPA.Config.Stores;
 using ModelMenu.App;
@@ -27,7 +27,7 @@ internal class Plugin
         Version = metadata.HVersion;
         Name = metadata.Name;
 
-        BeatSaberMarkupLanguage.BSMLParser.instance.RegisterTag(new DownloadButtonTag());
+        //BeatSaberMarkupLanguage.BSMLParser.instance.RegisterTag(new DownloadButtonTag());
 
         var pluginConfig = config.Generated<PluginConfig>();
 

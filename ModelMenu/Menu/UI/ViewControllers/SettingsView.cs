@@ -38,6 +38,7 @@ internal class SettingsView : BSMLAutomaticViewController
         config.CensorNsfwThumbnails = censorAdultOnlyThumbnails;
         config.HideInstalledModels = hideInstalledModels;
         mainView.UpdateFilter();
+        mainView.UpdateSelectedModelPreview();
         modelMenuFlowCoordinator.TransitionToView(ModelMenuFlowCoordinator.ViewType.Main);
     }
 
