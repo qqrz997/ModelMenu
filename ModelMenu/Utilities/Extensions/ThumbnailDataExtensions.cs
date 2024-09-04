@@ -7,6 +7,7 @@ namespace ModelMenu.Utilities.Extensions;
 internal static class ThumbnailDataExtensions
 {
     public static Sprite ToSprite(this ThumbnailData thumbnailData, int size, FilterMode filterMode = FilterMode.Trilinear) =>
-        new Texture2D(2, 2) { filterMode = filterMode }
+        thumbnailData is null ? null
+        : new Texture2D(2, 2) { filterMode = filterMode }
         .CreateSprite(ImageManipulation.DownscaleImage(thumbnailData.Data, size, ImageFormat.Jpeg));
 }

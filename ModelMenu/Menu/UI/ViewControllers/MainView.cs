@@ -233,9 +233,8 @@ internal class MainView : BSMLAutomaticViewController
             ? (PixelatedPreviewSize, FilterMode.Point)
             : (BigPreviewSize, FilterMode.Trilinear);
 
-        previewImage.sprite = modelThumbnailCache.TryGetSpriteForDimension(selectedModel.Hash, previewSize, out var sprite) ? sprite
-            : !modelThumbnailCache.TryGetData(selectedModel.Hash, out var thumbnailData) ? null
-            : thumbnailData.ToSprite(previewSize, filterMode);
+        previewImage.sprite = !modelThumbnailCache.TryGetData(selectedModel.Hash, out var data) ? null
+            : modelThumbnailCache.GetSprite(selectedModel.Hash, data, previewSize, filterMode);
 
         downloadButton.gameObject.SetActive(!installedAssetCache.IsAssetInstalled(selectedModel)
             && !modelDownloader.IsModelDownloading(selectedModel));
@@ -252,7 +251,7 @@ internal class MainView : BSMLAutomaticViewController
         var ageOptions = new AgeOptions(ageRating, config.CensorNsfwThumbnails);
         var searchOptions = new ModelSearchOptions(currentPageIndex, filterOptions, sortOptions, ageOptions);
 
-        await modelTileManager.UpdatePageAsync(gridModelTiles, searchOptions, OnPageUpdated);
+        await modelTileManager.UpdatePageAsync(gridModelTiles, searchOptions, OnPageUpdated, OnTileThumbnailDownloaded);
     }
 
     private void OnPageUpdated(ModelCache.PageRequestInfo pageInfo)
@@ -260,6 +259,11 @@ internal class MainView : BSMLAutomaticViewController
         totalPages = pageInfo.TotalPages;
         var currentPage = totalPages > 0 ? currentPageIndex + 1 : 0;
         pageIndexText.text = $"{currentPage} / {totalPages}";
+    }
+
+    private void OnTileThumbnailDownloaded(IModel model)
+    {
+        if (selectedModel == model) UpdateSelectedModelPreview();
     }
 
     private void OnDownloadCompleted(IModel downloadedModel, bool success)

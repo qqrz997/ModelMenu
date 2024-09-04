@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ModelMenu.Models;
+using ModelMenu.Utilities.Extensions;
 using UnityEngine;
 
 namespace ModelMenu.Menu.UI;
@@ -21,6 +22,10 @@ internal class ModelThumbnailCache
         return thumbnailData;
     }
 
+    public Sprite GetSprite(string modelHash, ThumbnailData data, int size, FilterMode filterMode = FilterMode.Trilinear) =>
+        TryGetSpritesForHash(modelHash, out var sprites) && sprites.TryGetValue(size, out var cached) ? cached
+        : AddSprite(modelHash, data.ToSprite(size, filterMode));
+
     public Sprite AddSprite(string modelHash, Sprite sprite)
     {
         int size = sprite.texture.width;
@@ -29,7 +34,6 @@ internal class ModelThumbnailCache
         {
             thumbnailSprites.TryAdd(size, sprite);
         }
-        // data doesn't exist for this model, don't do anything with the sprite
         return sprite;
     }
 
@@ -39,15 +43,8 @@ internal class ModelThumbnailCache
         {
             return true;
         }
-        thumbnailData = ThumbnailData.Create([]);
+        thumbnailData = ThumbnailData.Empty;
         return false;
-    }
-
-    public bool TryGetSpriteForDimension(string modelHash, int dimension, out Sprite sprite)
-    {
-        sprite = null;
-        return TryGetSpritesForHash(modelHash, out var thumbnailSprites)
-            && thumbnailSprites.TryGetValue(dimension, out sprite);
     }
 
     private bool TryGetSpritesForHash(string modelHash, out Dictionary<int, Sprite> thumbnailSprites)
