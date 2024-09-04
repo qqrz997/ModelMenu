@@ -25,13 +25,13 @@ internal class ModelCache
     public PageRequestInfo GetPage(int entriesCount, ModelSearchOptions searchOptions)
     {
         // get assets of a type
-        var ofType = CachedModels.Where(info => info.AssetType == searchOptions.AssetType);
+        var ofType = CachedModels.Where(info => info.AssetType == searchOptions.FilterOptions.AssetType);
 
         // find assets that match the search
-        var searchPhrase = searchOptions.SearchPhrase.ToLower();
+        var searchPhrase = searchOptions.FilterOptions.SearchPhrase.ToLower();
         var filtered = ofType.Where(info => $"{info.Name}{info.Author}".ToLower().Contains(searchPhrase));
 
-        if (searchOptions.HideInstalled)
+        if (searchOptions.FilterOptions.FilterInstalled)
         {
             // remove installed assets from results
             filtered = filtered.WhereNot(installedAssetCache.IsAssetInstalled);

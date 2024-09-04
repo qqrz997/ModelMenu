@@ -3,9 +3,7 @@
 internal record ModelSearchOptions
 (
     int PageIndex,
-    string SearchPhrase,
-    AssetType AssetType,
+    FilterOptions FilterOptions,
     SortOptions SortOptions,
-    AgeOptions AgeOptions,
-    bool HideInstalled
+    AgeOptions AgeOptions
 );

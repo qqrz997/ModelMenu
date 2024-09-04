@@ -241,13 +241,10 @@ internal class MainView : BSMLAutomaticViewController
             ? AgeRating.AdultOnly
             : AgeRating.AllAges;
 
-        var searchOptions = new ModelSearchOptions(
-            currentPageIndex,
-            searchFilter,
-            modelTypeFilter,
-            new SortOptions(sortTypeFilter, orderByFilter),
-            new AgeOptions(ageRating, config.CensorNsfwThumbnails),
-            config.HideInstalledModels);
+        var filterOptions = new FilterOptions(searchFilter, modelTypeFilter, config.HideInstalledModels);
+        var sortOptions = new SortOptions(sortTypeFilter, orderByFilter);
+        var ageOptions = new AgeOptions(ageRating, config.CensorNsfwThumbnails);
+        var searchOptions = new ModelSearchOptions(currentPageIndex, filterOptions, sortOptions, ageOptions);
 
         await modelTileManager.UpdatePageAsync(gridModelTiles, searchOptions, OnPageUpdated);
     }
