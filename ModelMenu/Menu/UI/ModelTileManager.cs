@@ -65,22 +65,24 @@ internal class ModelTileManager
                 tile.Thumbnail = null;
             }
 
-            var tilesToLoadThumbnails = pageTiles.Where(t => t.Model is not NoModel);
-
-            // todo - rate limit this
-
-            foreach (var tile in tilesToLoadThumbnails)
+            foreach (var tile in pageTiles.Where(t => t.Model is not NoModel))
             {
                 if (tokenSource.IsCancellationRequested) break;
 
-                var thumbnailData = thumbnailCache.TryGetData(tile.Model.Hash, out var cachedData) ? cachedData
-                    : await modelApi.GetThumbnailAsync(tile.Model, tokenSource.Token);
-
-                var (thumbnailSize, filterMode) = searchOptions.AgeOptions.ShouldCensorNsfw && tile.Model is AdultOnlyModel
-                    ? (PixelatedThumbnailSize, FilterMode.Point)
+                var shouldCensor = searchOptions.AgeOptions.ShouldCensorNsfw && tile.Model is AdultOnlyModel;
+                var (thumbnailSize, filterMode) = shouldCensor ? (PixelatedThumbnailSize, FilterMode.Point)
                     : (ThumbnailSize, FilterMode.Trilinear);
 
-                tile.Thumbnail = thumbnailCache.TryGetSpriteForDimension(tile.Model.Hash, thumbnailSize, out var cachedSprite) ? cachedSprite
+                if (!thumbnailCache.TryGetData(tile.Model.Hash, out var thumbnailData))
+                {
+                    // todo - slow down api requests in a more graceful manner
+                    await Task.Delay(0xA0, tokenSource.Token);
+                    if (tokenSource.IsCancellationRequested) break;
+                    thumbnailData = await modelApi.GetThumbnailAsync(tile.Model, tokenSource.Token);
+                }
+
+                tile.Thumbnail = thumbnailCache.TryGetSpriteForDimension(tile.Model.Hash, thumbnailSize, out var cached) ? cached
+                    : thumbnailData is null || thumbnailData.Data is [] ? null
                     : thumbnailCache.AddSprite(tile.Model.Hash, thumbnailData.ToSprite(thumbnailSize, filterMode));
 
                 tile.SetLoading(false);
