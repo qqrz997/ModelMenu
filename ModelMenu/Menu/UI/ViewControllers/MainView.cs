@@ -129,7 +129,7 @@ internal class MainView : BSMLAutomaticViewController
 
     private IModel selectedModel = null;
     private int currentPageIndex = 0;
-    private int lastPageIndex = -1;
+    private int totalPages = -1;
 
     [UIAction("#post-parse")]
     private async void PostParse()
@@ -185,7 +185,7 @@ internal class MainView : BSMLAutomaticViewController
     [UIAction("page-up")]
     private async void PageUp()
     {
-        if (currentPageIndex >= lastPageIndex) return;
+        if (currentPageIndex >= totalPages - 1) return;
         currentPageIndex++;
         await ShowCurrentPage();
     }
@@ -253,8 +253,9 @@ internal class MainView : BSMLAutomaticViewController
 
     private void OnPageUpdated(ModelCache.PageRequestInfo pageInfo)
     {
-        lastPageIndex = pageInfo.TotalPages - 1;
-        pageIndexText.text = $"{currentPageIndex + 1} / {pageInfo.TotalPages}";
+        totalPages = pageInfo.TotalPages;
+        var currentPage = totalPages > 0 ? currentPageIndex + 1 : 0;
+        pageIndexText.text = $"{currentPage} / {totalPages}";
     }
 
     private void OnDownloadCompleted(IModel downloadedModel, bool success)
