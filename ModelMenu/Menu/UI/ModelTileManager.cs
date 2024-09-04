@@ -32,7 +32,7 @@ internal class ModelTileManager
     private CancellationTokenSource tokenSource;
 
     // todo - try using a type to represent a collection of tiles?
-    public async Task UpdatePageAsync(ModelTile[] pageTiles, ModelSearchOptions searchOptions, Action<ModelCache.PageRequestInfo> callback)
+    public async Task UpdatePageAsync(ModelTile[] pageTiles, ModelSearchOptions searchOptions, Action<ModelCache.PageRequestInfo> callback, Action<IModel> thumbnailDownloaded)
     {
         foreach (var tile in pageTiles) tile.Model = new NoModel();
 
@@ -47,22 +47,11 @@ internal class ModelTileManager
 
             for (int i = 0; i < pageTiles.Length; i++)
             {
-                if (pageInfo.Models[i] is NoModel)
-                {
-                    pageTiles[i].SetActive(false);
-                    continue;
-                }
-
-                pageTiles[i].SetActive(true);
+                pageTiles[i].SetLoading(true);
+                pageTiles[i].SetActive(pageInfo.Models[i] is not NoModel);
                 pageTiles[i].Model = pageInfo.Models[i];
                 pageTiles[i].IsInstalled = installedAssetCache.IsAssetInstalled(pageInfo.Models[i]);
                 pageTiles[i].Thumbnail = null;
-            }
-
-            foreach (var tile in pageTiles)
-            {
-                tile.SetLoading(true);
-                tile.Thumbnail = null;
             }
 
             foreach (var tile in pageTiles.Where(t => t.Model is not NoModel))
@@ -79,12 +68,10 @@ internal class ModelTileManager
                     await Task.Delay(0xA0, tokenSource.Token);
                     if (tokenSource.IsCancellationRequested) break;
                     thumbnailData = await modelApi.GetThumbnailAsync(tile.Model, tokenSource.Token);
+                    thumbnailDownloaded(tile.Model);
                 }
 
-                tile.Thumbnail = thumbnailCache.TryGetSpriteForDimension(tile.Model.Hash, thumbnailSize, out var cached) ? cached
-                    : thumbnailData is null || thumbnailData.Data is [] ? null
-                    : thumbnailCache.AddSprite(tile.Model.Hash, thumbnailData.ToSprite(thumbnailSize, filterMode));
-
+                tile.Thumbnail = thumbnailCache.GetSprite(tile.Model.Hash, thumbnailData, thumbnailSize, filterMode);
                 tile.SetLoading(false);
             }
         }
