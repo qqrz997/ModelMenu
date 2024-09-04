@@ -59,6 +59,9 @@
           </horizontal>
         </grid>
       </horizontal>
+      <horizontal pad-right='2'>
+        <text id='mod-info-text' text='?' align='MidlineRight' font-color='grey' font-size='3'/>
+      </horizontal>
     </vertical>
   </horizontal>
 

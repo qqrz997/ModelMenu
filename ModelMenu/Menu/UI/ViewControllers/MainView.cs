@@ -7,7 +7,6 @@ using ModelMenu.App;
 using ModelMenu.Menu.Services;
 using ModelMenu.Models;
 using ModelMenu.Utilities;
-using ModelMenu.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -91,6 +90,9 @@ internal class MainView : BSMLAutomaticViewController
         }
     }
 
+    [UIComponent("mod-info-text")]
+    private TextMeshProUGUI modInfoText;
+
     [UIComponent("search-modal")]
     private ModalView searchModal;
 
@@ -135,6 +137,8 @@ internal class MainView : BSMLAutomaticViewController
     [UIAction("#post-parse")]
     private async void PostParse()
     {
+        modInfoText.text = $"{Plugin.Name} v{Plugin.Version} - send bug reports to qqrz on discord";
+
         modelGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         modelGrid.constraintCount = 6;
 
@@ -171,13 +175,12 @@ internal class MainView : BSMLAutomaticViewController
     [UIAction("show-model-info")]
     private void ShowModelInfo()
     {
-        if (selectedModel != null)
-        {
-            infoModalTitle.text = $"{selectedModel.Name} by {selectedModel.Author}";
-            infoModalDescription.text = string.IsNullOrWhiteSpace(selectedModel.Description.FullName) ? "No description" 
-                : selectedModel.Description.FullName;
-            modelInfoModal.Show(true);
-        }
+        if (selectedModel == null) return;
+
+        infoModalTitle.text = $"{selectedModel.Name} by {selectedModel.Author}";
+        infoModalDescription.text = string.IsNullOrWhiteSpace(selectedModel.Description.FullName) ? "No description"
+            : selectedModel.Description.FullName;
+        modelInfoModal.Show(true);
     }
 
     [UIAction("hide-model-info")]

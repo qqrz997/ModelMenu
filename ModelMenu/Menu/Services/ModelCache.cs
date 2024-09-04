@@ -11,12 +11,10 @@ namespace ModelMenu.Menu.Services;
 // todo - model this better
 internal class ModelCache
 {
-    private readonly SiraLog log;
-    private readonly PluginConfig config;
     private readonly InstalledAssetCache installedAssetCache;
 
     private ModelCache(SiraLog log, PluginConfig config, InstalledAssetCache installedAssetCache) =>
-        (this.log, this.config, this.installedAssetCache) = (log, config, installedAssetCache);
+        this.installedAssetCache = installedAssetCache;
 
     public IModel[] CachedModels { get; set; } = [];
 

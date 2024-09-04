@@ -7,7 +7,6 @@ namespace ModelMenu.Menu.UI;
 
 internal class ModelThumbnailCache
 {
-    // whatever uses this should be responsible for creating sprites from their data
     // 'temporary'
     // at least give Dictionary<int, Sprite> a name? what does Dictionary<int, Sprite> even mean???
 
@@ -22,21 +21,6 @@ internal class ModelThumbnailCache
         return thumbnailData;
     }
 
-    public Sprite GetSprite(string modelHash, ThumbnailData data, int size, FilterMode filterMode = FilterMode.Trilinear) =>
-        TryGetSpritesForHash(modelHash, out var sprites) && sprites.TryGetValue(size, out var cached) ? cached
-        : AddSprite(modelHash, data.ToSprite(size, filterMode));
-
-    public Sprite AddSprite(string modelHash, Sprite sprite)
-    {
-        int size = sprite.texture.width;
-        if (TryGetSpritesForHash(modelHash, out var thumbnailSprites)
-            && !thumbnailSprites.ContainsKey(size))
-        {
-            thumbnailSprites.TryAdd(size, sprite);
-        }
-        return sprite;
-    }
-
     public bool TryGetData(string modelHash, out ThumbnailData thumbnailData)
     {
         if (hashThumbnailPairs.TryGetValue(modelHash, out thumbnailData))
@@ -45,6 +29,21 @@ internal class ModelThumbnailCache
         }
         thumbnailData = ThumbnailData.Empty;
         return false;
+    }
+
+    public Sprite GetSprite(string modelHash, ThumbnailData data, int size, FilterMode filterMode = FilterMode.Trilinear) =>
+        TryGetSpritesForHash(modelHash, out var sprites) && sprites.TryGetValue(size, out var cached) ? cached
+        : AddSprite(modelHash, data.ToSprite(size, filterMode));
+
+    private Sprite AddSprite(string modelHash, Sprite sprite)
+    {
+        int size = sprite.texture.width;
+        if (TryGetSpritesForHash(modelHash, out var thumbnailSprites)
+            && !thumbnailSprites.ContainsKey(size))
+        {
+            thumbnailSprites.TryAdd(size, sprite);
+        }
+        return sprite;
     }
 
     private bool TryGetSpritesForHash(string modelHash, out Dictionary<int, Sprite> thumbnailSprites)

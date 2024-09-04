@@ -1,6 +1,5 @@
 ﻿using ModelMenu.Menu.Services;
 using ModelMenu.Models;
-using ModelMenu.Utilities.Extensions;
 using SiraUtil.Logging;
 using System;
 using System.Linq;
@@ -12,15 +11,13 @@ namespace ModelMenu.Menu.UI;
 
 internal class ModelTileManager
 {
-    private readonly SiraLog log;
     private readonly ModelsaberApi modelApi;
     private readonly ModelCache modelCache;
     private readonly InstalledAssetCache installedAssetCache;
     private readonly ModelThumbnailCache thumbnailCache;
 
-    private ModelTileManager(SiraLog log, ModelsaberApi modelApi, ModelCache modelCache, InstalledAssetCache installedAssetCache, ModelThumbnailCache thumbnailCache)
+    private ModelTileManager(ModelsaberApi modelApi, ModelCache modelCache, InstalledAssetCache installedAssetCache, ModelThumbnailCache thumbnailCache)
     {
-        this.log = log;
         this.modelApi = modelApi;
         this.modelCache = modelCache;
         this.installedAssetCache = installedAssetCache;
