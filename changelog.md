@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.3.1
+- Updated to Beat Saber 1.37.5
+
 ### 0.3.0
 - Added the sort order option
 - Added a total page number indicator
