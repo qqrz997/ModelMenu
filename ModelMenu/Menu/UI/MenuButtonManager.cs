@@ -20,7 +20,7 @@ internal class MenuButtonManager : IInitializable, IDisposable
     public void Initialize()
     {
         button = new("More Models", "View and download more custom models", PresentFlowCoordinator);
-        MenuButtons.instance.RegisterButton(button);
+        MenuButtons.Instance.RegisterButton(button);
 
         modelMenuFlowCoordinator.DidFinish += ModelMenuDidFinish;
     }
@@ -33,7 +33,7 @@ internal class MenuButtonManager : IInitializable, IDisposable
 
     public void Dispose()
     {
-        MenuButtons.instance.UnregisterButton(button);
+        MenuButtons.Instance.UnregisterButton(button);
         modelMenuFlowCoordinator.DidFinish -= ModelMenuDidFinish;
     }
 }
