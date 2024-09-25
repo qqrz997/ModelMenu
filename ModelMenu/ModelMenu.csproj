@@ -15,22 +15,11 @@
     <DisableZipRelease>True</DisableZipRelease>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="LICENSE" />
-    <None Remove="Menu\UI\BSML\model-data-loading-screen.bsml" />
-    <None Remove="Menu\UI\BSML\settings.bsml" />
-    <None Remove="README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Menu\UI\BSML\settings.bsml" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="BeatSaber.ViewSystem">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatSaber.ViewSystem.dll</HintPath>
     </Reference>
     <Reference Include="BGLib.UnityExtension">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BGLib.UnityExtension.dll</HintPath>
-      <Private>False</Private>
-      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="mscorlib">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\mscorlib.dll</HintPath>
@@ -88,7 +77,14 @@
     <EmbeddedResource Include="manifest.json" />
     <EmbeddedResource Include="Menu\UI\BSML\model-data-loading-screen.bsml" />
     <EmbeddedResource Include="Menu\UI\BSML\main.bsml" />
+    <EmbeddedResource Include="Menu\UI\BSML\settings.bsml" />
     <EmbeddedResource Include="Resources\checkmark-icon-low.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="LICENSE" />
+    <None Remove="Menu\UI\BSML\model-data-loading-screen.bsml" />
+    <None Remove="Menu\UI\BSML\settings.bsml" />
+    <None Remove="README.md" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BeatSaberModdingTools.Tasks">
