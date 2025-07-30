@@ -72,13 +72,9 @@ internal class ModelTileManager
                 tile.SetLoading(false);
             }
         }
-#if DEBUG
         catch (Exception e)
         {
-            log.Debug(e); 
+            Plugin.Log.Debug(e); 
         }
-#else
-        catch { }
-#endif
     }
 }

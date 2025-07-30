@@ -15,8 +15,8 @@ namespace ModelMenu;
 [Plugin(RuntimeOptions.SingleStartInit), NoEnableDisable]
 internal class Plugin
 {
+    public static Logger Log { get; private set; }
     public static Version Version { get; private set; }
-
     public static string Name { get; private set; }
 
     public static Assembly ExecutingAssembly => Assembly.GetExecutingAssembly();
@@ -24,6 +24,7 @@ internal class Plugin
     [Init]
     public void Init(Logger logger, Config config, Zenjector zenjector, PluginMetadata metadata)
     {
+        Log = logger;
         Version = metadata.HVersion;
         Name = metadata.Name;
 
