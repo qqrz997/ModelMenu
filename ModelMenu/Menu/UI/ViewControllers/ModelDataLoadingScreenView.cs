@@ -15,13 +15,12 @@ namespace ModelMenu.Menu.UI.ViewControllers;
 [HotReload(RelativePathToLayout = "../BSML/model-data-loading-screen.bsml")]
 internal class ModelDataLoadingScreenView : BSMLAutomaticViewController
 {
-    [Inject] private readonly SiraLog log;
-    [Inject] private readonly ModelsaberApi modelApi;
-    [Inject] private readonly InstalledAssetCache installedAssetCache;
-    [Inject] private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator;
+    [Inject] private readonly ModelsaberApi modelApi = null!;
+    [Inject] private readonly InstalledAssetCache installedAssetCache = null!;
+    [Inject] private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator = null!;
 
     [UIComponent("status-text")]
-    private readonly TextMeshProUGUI statusText;
+    private readonly TextMeshProUGUI statusText = null!;
     private readonly string cachingStatusTextMessage = "Caching installed models";
     private readonly string apiStatusTextMessage = "Fetching external model data";
 

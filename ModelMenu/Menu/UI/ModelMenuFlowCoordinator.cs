@@ -10,19 +10,19 @@ namespace ModelMenu.Menu.UI;
 
 internal class ModelMenuFlowCoordinator : FlowCoordinator
 {
-    [Inject] private readonly MainView mainView;
-    [Inject] private readonly ModelDataLoadingScreenView modelDataLoadingScreenView;
-    [Inject] private readonly SettingsView settingsView;
-    [Inject] private readonly ModelAssetDownloader modelDownloader;
+    [Inject] private readonly MainView mainView = null!;
+    [Inject] private readonly ModelDataLoadingScreenView modelDataLoadingScreenView = null!;
+    [Inject] private readonly SettingsView settingsView = null!;
+    [Inject] private readonly ModelAssetDownloader modelDownloader = null!;
     
-    private const string menuTitle = "Model Menu";
+    private const string MenuTitle = "Model Menu";
     private ViewController currentView;
 
     public Action DidFinish;
 
     private void Awake()
     {
-        SetTitle(menuTitle);
+        SetTitle(MenuTitle);
         currentView = modelDataLoadingScreenView;
     }
 
@@ -39,7 +39,8 @@ internal class ModelMenuFlowCoordinator : FlowCoordinator
         {
             ViewType.ModelDataLoadingScreen => modelDataLoadingScreenView,
             ViewType.Main => mainView,
-            ViewType.Settings or _ => settingsView
+            ViewType.Settings => settingsView,
+            _ => throw new ArgumentOutOfRangeException(nameof(viewType))
         };
         if (!isActivated || isInTransition || currentView == view) return;
         showBackButton = view is MainView;
@@ -73,6 +74,6 @@ internal class ModelMenuFlowCoordinator : FlowCoordinator
     {
         SetTitle("<color=#CFC>Downloads complete</color>");
         yield return new WaitForSeconds(1);
-        SetTitle(menuTitle);
+        SetTitle(MenuTitle);
     }
 }

@@ -30,7 +30,7 @@ internal class ModelTile
         clickableImage.OnClickEvent += TileClickEvent;
         text = tileHost.GetComponentInChildren<FormattableText>();
         text.raycastTarget = false;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
         text.richText = false;
         var images = tileHost.transform.GetComponentsInChildren<ImageView>();
         loadingIndicator = images.First(i => i.sprite.name == "LoadingIndicator");

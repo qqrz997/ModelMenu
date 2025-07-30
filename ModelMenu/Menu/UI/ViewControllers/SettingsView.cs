@@ -10,10 +10,9 @@ namespace ModelMenu.Menu.UI.ViewControllers;
 [HotReload(RelativePathToLayout = "../BSML/settings.bsml")]
 internal class SettingsView : BSMLAutomaticViewController
 {
-    [Inject] private readonly SiraLog log;
-    [Inject] private readonly PluginConfig config;
-    [Inject] private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator;
-    [Inject] private readonly MainView mainView;
+    [Inject] private readonly PluginConfig config = null!;
+    [Inject] private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator = null!;
+    [Inject] private readonly MainView mainView = null!;
 
     [UIValue("hide-installed-models")]
     private bool HideInstalledModels { get => hideInstalledModels; set => hideInstalledModels = value; }

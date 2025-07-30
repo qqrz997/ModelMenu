@@ -1,5 +1,4 @@
 ﻿using IPA.Utilities;
-using ModelMenu.Models;
 using System.IO;
 using System.Linq;
 
@@ -21,15 +20,6 @@ internal class PathUtils
     public static string TrimPath(string path, string trimPath) =>
         path == trimPath || !path.Contains(trimPath) ? path
         : path.Replace(trimPath, string.Empty).Trim();
-
-    public static AssetType TypeForFilePath(string path) =>
-        Path.GetExtension(path) switch
-        {
-            ".avatar" => AssetType.Avatar,
-            ".bloq" => AssetType.Note,
-            ".plat" => AssetType.Platform,
-            ".saber" => AssetType.Saber
-        };
 
     public static string FormatExistingFilePath(string path)
     {

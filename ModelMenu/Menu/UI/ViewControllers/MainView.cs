@@ -22,14 +22,14 @@ namespace ModelMenu.Menu.UI.ViewControllers;
 [HotReload(RelativePathToLayout = "../BSML/main.bsml")]
 internal class MainView : BSMLAutomaticViewController
 {
-    [Inject] private readonly PluginConfig config;
-    [Inject] private readonly EmbeddedResources resources;
-    [Inject] private readonly ModelTileManager modelTileManager;
-    [Inject] private readonly ModelThumbnailCache modelThumbnailCache;
-    [Inject] private readonly ModelAssetDownloader modelDownloader;
-    [Inject] private readonly InstalledAssetCache installedAssetCache;
-    [Inject] private readonly PlayerDataModel playerDataModel;
-    [Inject] private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator;
+    [Inject] private readonly PluginConfig config = null!;
+    [Inject] private readonly EmbeddedResources resources = null!;
+    [Inject] private readonly ModelTileManager modelTileManager = null!;
+    [Inject] private readonly ModelThumbnailCache modelThumbnailCache = null!;
+    [Inject] private readonly ModelAssetDownloader modelDownloader = null!;
+    [Inject] private readonly InstalledAssetCache installedAssetCache = null!;
+    [Inject] private readonly PlayerDataModel playerDataModel = null!;
+    [Inject] private readonly ModelMenuFlowCoordinator modelMenuFlowCoordinator = null!;
 
     private AssetType modelTypeFilter = AssetType.Saber;
     private SortBy sortTypeFilter = SortBy.Date;
@@ -72,12 +72,9 @@ internal class MainView : BSMLAutomaticViewController
         }
     }
 
-    [UIComponent("model-type-filter")]
-    private DropDownListSetting modelTypeDropdown;
-    [UIComponent("sort-type-filter")]
-    private DropDownListSetting sortTypeDropdown;
-    [UIComponent("order-by-filter")]
-    private DropDownListSetting orderByDropdown;
+    [UIComponent("model-type-filter")] private readonly DropDownListSetting modelTypeDropdown = null!;
+    [UIComponent("sort-type-filter")] private readonly DropDownListSetting sortTypeDropdown = null!;
+    [UIComponent("order-by-filter")] private readonly DropDownListSetting orderByDropdown = null!;
 
     [UIValue("search-filter")]
     private string SearchFilter
@@ -90,41 +87,27 @@ internal class MainView : BSMLAutomaticViewController
         }
     }
 
-    [UIComponent("mod-info-text")]
-    private TextMeshProUGUI modInfoText;
+    [UIComponent("mod-info-text")] private readonly TextMeshProUGUI modInfoText = null!;
 
-    [UIComponent("search-modal")]
-    private ModalView searchModal;
+    [UIComponent("search-modal")] private readonly ModalView searchModal = null!;
 
-    [UIComponent("model-info-modal")]
-    private ModalView modelInfoModal;
-    [UIComponent("info-modal-title")]
-    private TextMeshProUGUI infoModalTitle;
-    [UIComponent("info-modal-description")]
-    private TextMeshProUGUI infoModalDescription;
+    [UIComponent("model-info-modal")] private readonly ModalView modelInfoModal = null!;
+    [UIComponent("info-modal-title")] private readonly TextMeshProUGUI infoModalTitle = null!;
+    [UIComponent("info-modal-description")] private readonly TextMeshProUGUI infoModalDescription = null!;
 
-    [UIComponent("big-preview")]
-    private ClickableImage previewImage;
-    [UIComponent("download-button")]
-    private ClickableImage downloadButton;
-    [UIComponent("page-down-button")]
-    private ClickableImage pageDownButton;
-    [UIComponent("page-up-button")]
-    private ClickableImage pageUpButton;
+    [UIComponent("big-preview")] private readonly ClickableImage previewImage = null!;
+    [UIComponent("download-button")] private readonly ClickableImage downloadButton = null!;
+    [UIComponent("page-down-button")] private readonly ClickableImage pageDownButton = null!;
+    [UIComponent("page-up-button")] private readonly ClickableImage pageUpButton = null!;
 
-    [UIComponent("page-index")]
-    private TextMeshProUGUI pageIndexText;
+    [UIComponent("page-index")] private readonly TextMeshProUGUI pageIndexText = null!;
 
-    [UIComponent("model-grid")]
-    private GridLayoutGroup modelGrid;
+    [UIComponent("model-grid")] private readonly GridLayoutGroup modelGrid = null!;
 
-    [UIObject("model-tile")]
-    private GameObject modelTileOriginal;
+    [UIObject("model-tile")] private readonly GameObject modelTileOriginal = null!;
     private readonly ModelTile[] gridModelTiles = new ModelTile[24];
-    [UIComponent("model-image")]
-    private ImageView modelTileImage;
-    [UIComponent("checkmark-icon")]
-    private ImageView modelCheckmark;
+    [UIComponent("model-image")] private readonly ImageView modelTileImage = null!;
+    [UIComponent("checkmark-icon")] private readonly ImageView modelCheckmark = null!;
 
     private const int TilesPerPage = 24;
     private const int BigPreviewSize = 512;
